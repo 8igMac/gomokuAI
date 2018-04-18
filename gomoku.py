@@ -1,4 +1,5 @@
 from tkinter import *
+import math
 
 # global parameter
 GAP = 10 # gap between board and boarder of the frame
@@ -6,6 +7,7 @@ VERTICE_GAPE = 20 # gap between vertices
 NUM_VERTICE = 217 # total number of vertices
 WIDTH = 16 * VERTICE_GAPE + 2*GAP # game board width
 HIEGHT = 16 * VERTICE_GAPE + 2*GAP # game board height
+
 
 class gomoku:
 
@@ -35,7 +37,18 @@ class gomoku:
         # draw the game board
         self._board()
 
+        # init game state as [(coord.x, coord.y), state]
+        self.game_state = []
+        for i in range(17):
+            if i < 9:
+                for j in range(9+i):
+                    self.game_state.append([(80+GAP+j*20-i*10,0+GAP+i*20), 0])
+            else:
+                for j in range(17-(i-8)):
+                    self.game_state.append([(10+GAP+j*20+(i-9)*10,0+GAP+i*20), 0])
+
     def _board(self):
+        # draw hexigon game board
         for x in range(9):
             self.canvas.create_line(80+x*20+GAP,0+GAP,x*10+GAP,160+x*20+GAP)
             self.canvas.create_line(320-(80+x*20)+GAP,320+GAP,320-x*10+GAP,160-x*20+GAP)
@@ -56,15 +69,21 @@ class gomoku:
         self.canvas.bind("<Button-1>", self.dbPlayer)
         self._board()
         # set up game state
-        self.game_state = [0 for x in range(NUM_VERTICE)] 
+        for item in self.game_state:
+            item[1] = 0
         # set up game turns
         self.turn = 0
 
-    def sgPlayer(self):
+    def sgPlayer(self, event):
         pass
 
-    def dbPlayer(self):
+    def dbPlayer(self, event):
         pass
+    def check(self):
+        pass
+
+    def distance(self,x1,y1,x2,y2):
+        return math.sqrt((x1-x2)**2 + (y1-y2)**2)
 
 
 
