@@ -1,5 +1,12 @@
 from tkinter import *
 
+# global parameter
+GAP = 10 # gap between board and boarder of the frame
+VERTICE_GAPE = 20 # gap between vertices
+NUM_VERTICE = 217 # total number of vertices
+WIDTH = 16 * VERTICE_GAPE + 2*GAP # game board width
+HIEGHT = 16 * VERTICE_GAPE + 2*GAP # game board height
+
 class gomoku:
 
     def __init__(self, master):
@@ -8,11 +15,11 @@ class gomoku:
         self.frame.pack(fill='both', expand=True)
 
         # start a canvas
-        self.canvas = Canvas(self.frame, width=320, height=340)
+        self.canvas = Canvas(self.frame, width=WIDTH, height=HIEGHT)
         self.canvas.pack(fill='both', expand=True)
 
         # create a label
-        self.label = Label(self.frame, text="Gomoku game", height=6, bg="black", fg="white")
+        self.label = Label(self.frame, text="Gomoku game", height=5, bg="black", fg="white")
         self.label.pack(fill='both', expand=True)
 
         # start button
@@ -30,18 +37,14 @@ class gomoku:
 
     def _board(self):
         for x in range(9):
-            self.canvas.create_line(80+x*20,0,x*10,160+x*20)
-            self.canvas.create_line(320-(80+x*20),320,320-x*10,160-x*20)
-
+            self.canvas.create_line(80+x*20+GAP,0+GAP,x*10+GAP,160+x*20+GAP)
+            self.canvas.create_line(320-(80+x*20)+GAP,320+GAP,320-x*10+GAP,160-x*20+GAP)
         for y in range(9):
-            self.canvas.create_line(80+y*20,0,240+y*10,320-y*20)
-            self.canvas.create_line(80-y*10,0+y*20,240-y*20,320)
-
+            self.canvas.create_line(80+y*20+GAP,0+GAP,240+y*10+GAP,320-y*20+GAP)
+            self.canvas.create_line(80-y*10+GAP,0+y*20+GAP,240-y*20+GAP,320+GAP)
         for z in range(9):
-            self.canvas.create_line(80-z*10,0+z*20,240+z*10,0+z*20)
-            self.canvas.create_line(80-z*10,320-z*20,240+z*10,320-z*20)
-
-        self.canvas.create_line(80,0,240,0)
+            self.canvas.create_line(80-z*10+GAP,0+z*20+GAP,240+z*10+GAP,0+z*20+GAP)
+            self.canvas.create_line(80-z*10+GAP,320-z*20+GAP,240+z*10+GAP,320-z*20+GAP)
 
     def startSg(self):
         pass
@@ -53,7 +56,7 @@ class gomoku:
         self.canvas.bind("<Button-1>", self.dbPlayer)
         self._board()
         # set up game state
-        self.game_state = [0 for x in range(217)] 
+        self.game_state = [0 for x in range(NUM_VERTICE)] 
         # set up game turns
         self.turn = 0
 
