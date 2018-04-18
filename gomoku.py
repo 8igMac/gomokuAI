@@ -78,7 +78,27 @@ class gomoku:
         pass
 
     def dbPlayer(self, event):
-        pass
+        for item in self.game_state:
+            # find closest vertice
+            if self.distance(event.x,event.y,item[0][0], item[0][1]) < 10:
+                # if the vertice never played before
+                if item[1] == 0:
+                    self.turn = self.turn+1
+                    # first serv: black
+                    if self.turn%2 == 1: 
+                        item[1] = 1
+                        self.canvas.create_oval(item[0][0]-5, item[0][1]-5, 
+                                                item[0][0]+5, item[0][1]+5, fill='black')
+                    # second serv: white
+                    else: 
+                        item[1] = 2
+                        self.canvas.create_oval(item[0][0]-5, item[0][1]-5, 
+                                                item[0][0]+5, item[0][1]+5, fill='white')
+                # check win condition
+                self.check()
+                break
+
+
     def check(self):
         pass
 
