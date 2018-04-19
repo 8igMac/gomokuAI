@@ -102,11 +102,30 @@ class gomoku:
 
 
     def check(self, idx):
+        var = idx
+        in_a_row = 0
+
+        # check --
+        while self.game_state[var-1][0][1] == self.game_state[idx][0][1] and \
+                self.game_state[var-1][1] == self.game_state[idx][1]: 
+            in_a_row = in_a_row + 1
+            var = var-1
+        var = idx
+        while self.game_state[var+1][0][1] == self.game_state[idx][0][1] and \
+                self.game_state[var+1][1] == self.game_state[idx][1]:
+            in_a_row = in_a_row + 1
+            var = var+1
+        if in_a_row == 4:
+            # win
+            self.end()
+
         # check /
 
         # check \
-        # check --
         pass
+
+    def end(self):
+        self.canvas.unbind("<Button-1>")
 
     def distance(self,x1,y1,x2,y2):
         return math.sqrt((x1-x2)**2 + (y1-y2)**2)
