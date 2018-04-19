@@ -3,10 +3,17 @@ import math
 
 # global parameter
 GAP = 10 # gap between board and boarder of the frame
-VERTICE_GAPE = 20 # gap between vertices
+VERTICE_GAP = 28 # gap between vertices (even number only!!!!)
+HALF_VGAP = (int)(VERTICE_GAP/2) # half of vertice gap
+
+BRD_START = (int)(VERTICE_GAP*4) # game board start coordinate
+BRD_END = BRD_START*4 # game board end coordinate
+
 NUM_VERTICE = 217 # total number of vertices
-WIDTH = 16 * VERTICE_GAPE + 2*GAP # game board width
-HIEGHT = 16 * VERTICE_GAPE + 2*GAP # game board height
+STONE_SIZE = (int)(VERTICE_GAP*2/5)
+
+WIDTH = 16 * VERTICE_GAP + 2*GAP # game board width
+HIEGHT = 16 * VERTICE_GAP + 2*GAP # game board height
 
 
 class gomoku:
@@ -42,22 +49,22 @@ class gomoku:
         for i in range(17):
             if i < 9:
                 for j in range(9+i):
-                    self.game_state.append([(80+GAP+j*20-i*10,0+GAP+i*20), 0])
+                    self.game_state.append([(BRD_START+GAP+j*VERTICE_GAP-i*HALF_VGAP,0+GAP+i*VERTICE_GAP), 0])
             else:
                 for j in range(17-(i-8)):
-                    self.game_state.append([(10+GAP+j*20+(i-9)*10,0+GAP+i*20), 0])
+                    self.game_state.append([(HALF_VGAP+GAP+j*VERTICE_GAP+(i-9)*HALF_VGAP,0+GAP+i*VERTICE_GAP), 0])
 
     def _board(self):
         # draw hexigon game board
         for x in range(9):
-            self.canvas.create_line(80+x*20+GAP,0+GAP,x*10+GAP,160+x*20+GAP)
-            self.canvas.create_line(320-(80+x*20)+GAP,320+GAP,320-x*10+GAP,160-x*20+GAP)
+            self.canvas.create_line(BRD_START+x*VERTICE_GAP+GAP,0+GAP,x*HALF_VGAP+GAP,BRD_START*2+x*VERTICE_GAP+GAP)
+            self.canvas.create_line(BRD_END-(BRD_START+x*VERTICE_GAP)+GAP,BRD_END+GAP,BRD_END-x*HALF_VGAP+GAP,BRD_START*2-x*VERTICE_GAP+GAP)
         for y in range(9):
-            self.canvas.create_line(80+y*20+GAP,0+GAP,240+y*10+GAP,320-y*20+GAP)
-            self.canvas.create_line(80-y*10+GAP,0+y*20+GAP,240-y*20+GAP,320+GAP)
+            self.canvas.create_line(BRD_START+y*VERTICE_GAP+GAP,0+GAP,BRD_START*3+y*HALF_VGAP+GAP,BRD_END-y*VERTICE_GAP+GAP)
+            self.canvas.create_line(BRD_START-y*HALF_VGAP+GAP,0+y*VERTICE_GAP+GAP,BRD_START*3-y*VERTICE_GAP+GAP,BRD_END+GAP)
         for z in range(9):
-            self.canvas.create_line(80-z*10+GAP,0+z*20+GAP,240+z*10+GAP,0+z*20+GAP)
-            self.canvas.create_line(80-z*10+GAP,320-z*20+GAP,240+z*10+GAP,320-z*20+GAP)
+            self.canvas.create_line(BRD_START-z*HALF_VGAP+GAP,0+z*VERTICE_GAP+GAP,BRD_START*3+z*HALF_VGAP+GAP,0+z*VERTICE_GAP+GAP)
+            self.canvas.create_line(BRD_START-z*HALF_VGAP+GAP,BRD_END-z*VERTICE_GAP+GAP,BRD_START*3+z*HALF_VGAP+GAP,BRD_END-z*VERTICE_GAP+GAP)
 
     def startSg(self):
         pass
@@ -80,7 +87,7 @@ class gomoku:
     def dbPlayer(self, event):
         for idx in range(len(self.game_state)):
             # find closest vertice
-            if self.distance(event.x,event.y,self.game_state[idx][0][0], self.game_state[idx][0][1]) < 10:
+            if self.distance(event.x,event.y,self.game_state[idx][0][0], self.game_state[idx][0][1]) < HALF_VGAP:
                 # if the vertice never played before
                 if self.game_state[idx][1] == 0:
                     self.turn = self.turn+1
@@ -88,36 +95,42 @@ class gomoku:
                     if self.turn%2 == 1: 
                         # update game state table
                         self.game_state[idx][1] = 1
-                        self.canvas.create_oval(self.game_state[idx][0][0]-5, self.game_state[idx][0][1]-5, 
-                                                self.game_state[idx][0][0]+5, self.game_state[idx][0][1]+5, fill='black')
+                        self.canvas.create_oval(self.game_state[idx][0][0]-STONE_SIZE, self.game_state[idx][0][1]-STONE_SIZE, 
+                                                self.game_state[idx][0][0]+STONE_SIZE, self.game_state[idx][0][1]+STONE_SIZE, fill='black')
                     # second serv: white
                     else: 
                         # update game state table
                         self.game_state[idx][1] = 2
-                        self.canvas.create_oval(self.game_state[idx][0][0]-5, self.game_state[idx][0][1]-5, 
-                                                self.game_state[idx][0][0]+5, self.game_state[idx][0][1]+5, fill='white')
+                        self.canvas.create_oval(self.game_state[idx][0][0]-STONE_SIZE, self.game_state[idx][0][1]-STONE_SIZE, 
+                                                self.game_state[idx][0][0]+STONE_SIZE, self.game_state[idx][0][1]+STONE_SIZE, fill='white')
                     # check win condition
                     self.check(idx)
                 break
 
 
     def check(self, idx):
-        var = idx
+        var = idx-1
         in_a_row = 0
 
         # check --
-        while self.game_state[var-1][0][1] == self.game_state[idx][0][1] and \
-                self.game_state[var-1][1] == self.game_state[idx][1]: 
+        while var > 0 and self.game_state[var][0][1] == self.game_state[idx][0][1] and \
+                self.game_state[var][1] == self.game_state[idx][1]: 
             in_a_row = in_a_row + 1
             var = var-1
-        var = idx
-        while self.game_state[var+1][0][1] == self.game_state[idx][0][1] and \
-                self.game_state[var+1][1] == self.game_state[idx][1]:
+        var = idx+1
+        while var <= NUM_VERTICE-1 and self.game_state[var][0][1] == self.game_state[idx][0][1] and \
+                self.game_state[var][1] == self.game_state[idx][1]:
             in_a_row = in_a_row + 1
             var = var+1
         if in_a_row == 4:
             # win
+            if(self.game_state[idx][1] == 1):
+                self.label['text'] = "Player black wins!"
+            else:
+                self.label['text'] = "Player white wins!"
             self.end()
+        else:
+            in_a_row = 0
 
         # check /
 
