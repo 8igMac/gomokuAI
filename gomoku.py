@@ -35,7 +35,7 @@ class gomoku:
         self.framebtn = Frame(self.frame)
         self.framebtn.pack(fill='both', expand=True)
         self.btn_single = Button(self.framebtn, text="Single player", 
-                                 height=5, bg='blue', fg='yellow', command=self.startSg)
+                                 height=5, bg='blue', fg='yellow', command=self.popup_chose_stone)
         self.btn_single.pack(fill='both', expand=True, side=LEFT)
         self.btn_double = Button(self.framebtn, text="Double player", 
                                  height=5, bg='yellow', fg='blue', command=self.startDb)
@@ -54,6 +54,53 @@ class gomoku:
                 for j in range(17-(i-8)):
                     self.game_state.append([(HALF_VGAP+GAP+j*VERTICE_GAP+(i-9)*HALF_VGAP,0+GAP+i*VERTICE_GAP), 0])
 
+
+    def popup_chose_stone(self):
+        self.popwin = Tk()
+        popframe = Frame(self.popwin)
+        popframe.pack()
+        poplabel = Label(popframe, text='Chose white or black.', height=3)
+        poplabel.pack()
+        btn_black = Button(popframe, text='Black', fg='blue', command=lambda serv=0 : self.startSg(serv))
+        btn_black.pack(side=LEFT, fill='both', expand=True)
+        btn_white = Button(popframe, text='White', fg='blue', command=lambda serv=1 : self.startSg(serv))
+        btn_white.pack(side=RIGHT, fill='both', expand=True)
+
+
+    def startSg(self, serv):
+        self.popwin.destroy()
+        # set up single player GUI
+        self.canvas.delete(ALL)
+        self.label['text'] = "Gomoku game: single player mode"
+        self._board()
+        # set up game state
+        for item in self.game_state:
+            item[1] = 0
+        # set up game turns
+        self.turn = 0
+
+        if serv == 0:
+            # player first
+            self.label['text'] = 'You first'
+        else:
+            # ai first
+            self.label['text'] = 'AI first'
+
+
+
+    def startDb(self):
+        # set up double player GUI
+        self.canvas.delete(ALL)
+        self.label['text'] = "Gomoku game: double player mode"
+        self.canvas.bind("<Button-1>", self.place_stone)
+        self._board()
+        # set up game state
+        for item in self.game_state:
+            item[1] = 0
+        # set up game turns
+        self.turn = 0
+
+
     def _board(self):
         # draw hexigon game board
         for x in range(9):
@@ -66,25 +113,8 @@ class gomoku:
             self.canvas.create_line(BRD_START-z*HALF_VGAP+GAP,0+z*VERTICE_GAP+GAP,BRD_START*3+z*HALF_VGAP+GAP,0+z*VERTICE_GAP+GAP)
             self.canvas.create_line(BRD_START-z*HALF_VGAP+GAP,BRD_END-z*VERTICE_GAP+GAP,BRD_START*3+z*HALF_VGAP+GAP,BRD_END-z*VERTICE_GAP+GAP)
 
-    def startSg(self):
-        pass
 
-    def startDb(self):
-        # set up double player GUI
-        self.canvas.delete(ALL)
-        self.label['text'] = "Gomoku game: double player mode"
-        self.canvas.bind("<Button-1>", self.dbPlayer)
-        self._board()
-        # set up game state
-        for item in self.game_state:
-            item[1] = 0
-        # set up game turns
-        self.turn = 0
-
-    def sgPlayer(self, event):
-        pass
-
-    def dbPlayer(self, event):
+    def place_stone(self, event):
         for idx in range(len(self.game_state)):
             # find closest vertice
             if self.distance(event.x,event.y,self.game_state[idx][0][0], self.game_state[idx][0][1]) < HALF_VGAP:
@@ -108,8 +138,8 @@ class gomoku:
                 break
 
 
-    def check(self, idx):
 
+    def check(self, idx):
         # check --
         in_a_row = 0
         dummy_state = [(self.game_state[idx][0][0]-VERTICE_GAP, self.game_state[idx][0][1]), self.game_state[idx][1]]
@@ -129,7 +159,6 @@ class gomoku:
             else:
                 self.label['text'] = "Player white wins!"
             self.end()
-            
 
         # check \
         in_a_row = 0
@@ -150,7 +179,6 @@ class gomoku:
             else:
                 self.label['text'] = "Player white wins!"
             self.end()
-
 
         # check /
         in_a_row = 0
@@ -179,8 +207,10 @@ class gomoku:
         self.label['text'] = "Draw!"
         self.end()
 
+
     def end(self):
         self.canvas.unbind("<Button-1>")
+
 
     def distance(self,x1,y1,x2,y2):
         return math.sqrt((x1-x2)**2 + (y1-y2)**2)

@@ -1,2 +1,8 @@
 # vim swap file
 *.swp
+
+# test txt file
+*.txt
+
+ai.py
+t.py
