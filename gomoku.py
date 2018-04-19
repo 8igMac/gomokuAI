@@ -109,19 +109,19 @@ class gomoku:
 
 
     def check(self, idx):
-        var = idx-1
-        in_a_row = 0
 
         # check --
-        while var > 0 and self.game_state[var][0][1] == self.game_state[idx][0][1] and \
-                self.game_state[var][1] == self.game_state[idx][1]: 
+        in_a_row = 0
+        dummy_state = [(self.game_state[idx][0][0]-VERTICE_GAP, self.game_state[idx][0][1]), self.game_state[idx][1]]
+
+        while dummy_state in self.game_state:
             in_a_row = in_a_row + 1
-            var = var-1
-        var = idx+1
-        while var <= NUM_VERTICE-1 and self.game_state[var][0][1] == self.game_state[idx][0][1] and \
-                self.game_state[var][1] == self.game_state[idx][1]:
+            dummy_state = [(dummy_state[0][0]-VERTICE_GAP, dummy_state[0][1]), dummy_state[1]]
+        dummy_state = [(self.game_state[idx][0][0]+VERTICE_GAP, self.game_state[idx][0][1]), self.game_state[idx][1]]
+        while dummy_state in self.game_state:
             in_a_row = in_a_row + 1
-            var = var+1
+            dummy_state = [(dummy_state[0][0]+VERTICE_GAP, dummy_state[0][1]), dummy_state[1]]
+
         if in_a_row == 4:
             # win
             if(self.game_state[idx][1] == 1):
@@ -129,13 +129,48 @@ class gomoku:
             else:
                 self.label['text'] = "Player white wins!"
             self.end()
-        else:
-            in_a_row = 0
-
-        # check /
+            
 
         # check \
-        pass
+        in_a_row = 0
+        dummy_state = [(self.game_state[idx][0][0]-HALF_VGAP, self.game_state[idx][0][1]-VERTICE_GAP), self.game_state[idx][1]]
+
+        while dummy_state in self.game_state:
+            in_a_row = in_a_row+1
+            dummy_state = [(dummy_state[0][0]-HALF_VGAP, dummy_state[0][1]-VERTICE_GAP), dummy_state[1]]
+        dummy_state = [(self.game_state[idx][0][0]+HALF_VGAP, self.game_state[idx][0][1]+VERTICE_GAP), self.game_state[idx][1]]
+        while dummy_state in self.game_state:
+            in_a_row = in_a_row+1
+            dummy_state = [(dummy_state[0][0]+HALF_VGAP, dummy_state[0][1]+VERTICE_GAP), dummy_state[1]]
+
+        if in_a_row == 4:
+            # win
+            if(self.game_state[idx][1] == 1):
+                self.label['text'] = "Player black wins!"
+            else:
+                self.label['text'] = "Player white wins!"
+            self.end()
+
+
+        # check /
+        in_a_row = 0
+        dummy_state = [(self.game_state[idx][0][0]-HALF_VGAP, self.game_state[idx][0][1]+VERTICE_GAP), self.game_state[idx][1]]
+
+        while dummy_state in self.game_state:
+            in_a_row = in_a_row+1
+            dummy_state = [(dummy_state[0][0]-HALF_VGAP, dummy_state[0][1]+VERTICE_GAP), dummy_state[1]]
+        dummy_state = [(self.game_state[idx][0][0]+HALF_VGAP, self.game_state[idx][0][1]-VERTICE_GAP), self.game_state[idx][1]]
+        while dummy_state in self.game_state:
+            in_a_row = in_a_row+1
+            dummy_state = [(dummy_state[0][0]+HALF_VGAP, dummy_state[0][1]-VERTICE_GAP), dummy_state[1]]
+
+        if in_a_row == 4:
+            # win
+            if(self.game_state[idx][1] == 1):
+                self.label['text'] = "Player black wins!"
+            else:
+                self.label['text'] = "Player white wins!"
+            self.end()
 
     def end(self):
         self.canvas.unbind("<Button-1>")
