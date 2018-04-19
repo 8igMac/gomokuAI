@@ -172,6 +172,13 @@ class gomoku:
                 self.label['text'] = "Player white wins!"
             self.end()
 
+        # check draw
+        for i in range(NUM_VERTICE):
+            if self.game_state[i][1] == 0:
+                return
+        self.label['text'] = "Draw!"
+        self.end()
+
     def end(self):
         self.canvas.unbind("<Button-1>")
 
