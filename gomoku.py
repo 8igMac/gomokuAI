@@ -1,5 +1,6 @@
 from tkinter import *
 import math
+import time
 
 # global parameter
 GAP = 10 # gap between board and boarder of the frame
@@ -68,6 +69,7 @@ class gomoku:
 
 
     def startSg(self, serv):
+        self.serv = serv
         self.popwin.destroy()
         # set up single player GUI
         self.canvas.delete(ALL)
@@ -79,12 +81,44 @@ class gomoku:
         # set up game turns
         self.turn = 0
 
-        if serv == 0:
-            # player first
-            self.label['text'] = 'You first'
+        self.canvas.bind("<Button-1>", self.sg_place_stone)
+
+    def ai(self):
+        s = 'a' # just a buffer
+        self.turn = self.turn+1
+        with open('state_27.txt', 'w') as f:
+            f.write(str(self.turn))
+        print("AI is thinking...")
+        while str(self.turn) != s:
+            with open('move_27.txt', 'r') as f:
+                s = f.read()
+        print("Your turn!")
+
+    def sg_place_stone(self,event):
+        if self.turn%2 == self.serv:
+            for idx in range(len(self.game_state)):
+                # find closest vertice
+                if self.distance(event.x,event.y,self.game_state[idx][0][0], self.game_state[idx][0][1]) < HALF_VGAP:
+                    # if the vertice never played before
+                    if self.game_state[idx][1] == 0:
+                        self.turn = self.turn+1
+                        # first serv: black
+                        if self.turn%2 == 1: 
+                            # update game state table
+                            self.game_state[idx][1] = 1
+                            self.canvas.create_oval(self.game_state[idx][0][0]-STONE_SIZE, self.game_state[idx][0][1]-STONE_SIZE, 
+                                                    self.game_state[idx][0][0]+STONE_SIZE, self.game_state[idx][0][1]+STONE_SIZE, fill='black')
+                        # second serv: white
+                        else: 
+                            # update game state table
+                            self.game_state[idx][1] = 2
+                            self.canvas.create_oval(self.game_state[idx][0][0]-STONE_SIZE, self.game_state[idx][0][1]-STONE_SIZE, 
+                                                    self.game_state[idx][0][0]+STONE_SIZE, self.game_state[idx][0][1]+STONE_SIZE, fill='white')
+                        # check win condition
+                        self.check(idx)
+                    break
         else:
-            # ai first
-            self.label['text'] = 'AI first'
+            self.ai()
 
 
 
@@ -92,7 +126,7 @@ class gomoku:
         # set up double player GUI
         self.canvas.delete(ALL)
         self.label['text'] = "Gomoku game: double player mode"
-        self.canvas.bind("<Button-1>", self.place_stone)
+        self.canvas.bind("<Button-1>", self.db_place_stone)
         self._board()
         # set up game state
         for item in self.game_state:
@@ -114,7 +148,7 @@ class gomoku:
             self.canvas.create_line(BRD_START-z*HALF_VGAP+GAP,BRD_END-z*VERTICE_GAP+GAP,BRD_START*3+z*HALF_VGAP+GAP,BRD_END-z*VERTICE_GAP+GAP)
 
 
-    def place_stone(self, event):
+    def db_place_stone(self, event):
         for idx in range(len(self.game_state)):
             # find closest vertice
             if self.distance(event.x,event.y,self.game_state[idx][0][0], self.game_state[idx][0][1]) < HALF_VGAP:
