@@ -104,8 +104,11 @@ class gomoku:
 
         # read ai move
         while input_line == [] or str(self.turn) != input_line[0]:
-            with open('move_27.txt', 'r') as f:
-                input_line = f.readline().split()
+            try:
+                with open('move_27.txt', 'r') as f:
+                    input_line = f.readline().split()
+            except FileNotFoundError:
+                continue
         # clock stop
         # to-do
 
