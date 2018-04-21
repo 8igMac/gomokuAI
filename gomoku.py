@@ -84,17 +84,63 @@ class gomoku:
         self.canvas.bind("<Button-1>", self.sg_place_stone)
 
     def ai(self):
-        s = 'a' # just a buffer
+        input_line = ['ai']
         self.turn = self.turn+1
+        ai_move = -1
+
+        # write game state
         with open('state_27.txt', 'w') as f:
-            # write game state
-            f.write(str(self.turn)+"\n")
+            f.write('{}\n'.format(self.turn))
             for item in self.game_state:
-                f.write(str(item[1])+" ")
+                if item[1] == 0:
+                    f.write('0 ')
+                elif item[1]%2 == self.turn%2: 
+                    f.write('1 ')
+                else:
+                    f.write('2 ')
+
+        # clock start
         print("AI is thinking...")
-        while str(self.turn) != s:
+
+        # read ai move
+        while input_line == [] or str(self.turn) != input_line[0]:
             with open('move_27.txt', 'r') as f:
-                s = f.read()
+                input_line = f.readline().split()
+        # clock stop
+        # to-do
+
+        # exame ai move: time exam
+        # to-do
+
+        ai_move = int(input_line[1])
+        # exame ai move: out of bound
+        if ai_move< 0 or ai_move > 216:
+            print("ai move out of bound!")
+            if self.turn%2 == 0:
+                self.label['text'] = "Player black wins!"
+            else:
+                self.label['text'] = "Player white wins!"
+
+        # exame ai move: move already taken
+        if self.game_state[ai_move][1] != 0:
+            print("ai illegal move!")
+            if self.turn%2 == 0:
+                self.label['text'] = "Player black wins!"
+            else:
+                self.label['text'] = "Player white wins!"
+
+        # place ai move on board
+        if self.turn%2 == 0:
+            self.game_state[ai_move][1] = 2;
+            self.canvas.create_oval(self.game_state[ai_move][0][0]-STONE_SIZE, self.game_state[ai_move][0][1]-STONE_SIZE, 
+                                    self.game_state[ai_move][0][0]+STONE_SIZE, self.game_state[ai_move][0][1]+STONE_SIZE, fill='white')
+        else:
+            self.game_state[ai_move][1] = 1;
+            self.canvas.create_oval(self.game_state[ai_move][0][0]-STONE_SIZE, self.game_state[ai_move][0][1]-STONE_SIZE, 
+                                    self.game_state[ai_move][0][0]+STONE_SIZE, self.game_state[ai_move][0][1]+STONE_SIZE, fill='black')
+
+        print('ai move: {}'.format(input_line[1]))
+        self.check(ai_move)
         print("Your turn!")
 
     def sg_place_stone(self,event):

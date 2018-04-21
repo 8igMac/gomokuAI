@@ -6,6 +6,7 @@
 
 using namespace std;
 
+#define DEBUG 0
 #define STATE_FILE "state_27.txt"
 #define MOVE_FILE "move_27.txt"
 
@@ -29,6 +30,7 @@ int main() {
 
 	int get_turn = -1;
 	int next_turn = -2;
+	int next_move = -1;
 	vector<int> game_state(217,0);
 
 	while(1) {
@@ -50,17 +52,27 @@ int main() {
 		}
 
 		// debug: print read message
-		cout << get_turn << endl;
-		for(auto item: game_state)
-			cout << item << " ";
-		cout << endl;
+		if(DEBUG) {
+			cout << get_turn << endl;
+			for(auto item: game_state)
+				cout << item << " ";
+			cout << endl;
+		}
 
 		/* calculate next move */
-		for(int i=0;i<1000000;i++);
+		for(int i=0; i<game_state.size(); i++) 
+			if(game_state[i] == 0) {
+				next_move = i;
+				break;
+			}
+
+		// debug: print ai's next move
+		if(DEBUG)
+			cout << "next move: " << next_move << endl; //debug
 
 		/* write my move */
 		f.open(MOVE_FILE,ios_base::out);
-		f << next_turn;
+		f << next_turn << " " << next_move;
 		f.close();
 
 		next_turn+=2;
