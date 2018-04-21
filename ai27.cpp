@@ -3,6 +3,8 @@
 #include <vector>
 #include <sstream>
 #include <string>
+#include <thread>
+#include <chrono>
 
 using namespace std;
 
@@ -65,6 +67,7 @@ int main() {
 				next_move = i;
 				break;
 			}
+		this_thread::sleep_for(chrono::milliseconds(2000)); // sleep for 2 secs
 
 		// debug: print ai's next move
 		if(DEBUG)

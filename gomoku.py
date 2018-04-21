@@ -16,6 +16,9 @@ STONE_SIZE = (int)(VERTICE_GAP*2/5)
 WIDTH = 16 * VERTICE_GAP + 2*GAP # game board width
 HIEGHT = 16 * VERTICE_GAP + 2*GAP # game board height
 
+TIME_CONSTRAIN = 5.001 
+STATE_FILE = 'state_27.txt'
+MOVE_FILE = 'move_27.txt'
 
 class gomoku:
 
@@ -80,6 +83,12 @@ class gomoku:
             item[1] = 0
         # set up game turns
         self.turn = 0
+        # clean move_27.txt
+        try:
+            with open(MOVE_FILE,'w') as f:
+                f.write('')
+        except FileNotFoundError:
+            pass
 
         self.canvas.bind("<Button-1>", self.sg_place_stone)
 
@@ -98,8 +107,10 @@ class gomoku:
                     f.write('1 ')
                 else:
                     f.write('2 ')
-
         # clock start
+        begin_time = time.monotonic()
+
+        self.label['text'] = "AI is thinking..."
         print("AI is thinking...")
 
         # read ai move
@@ -107,30 +118,31 @@ class gomoku:
             try:
                 with open('move_27.txt', 'r') as f:
                     input_line = f.readline().split()
+
+                # exame ai move: time exam
+                used_time = time.monotonic() - begin_time
+                if used_time > TIME_CONSTRAIN:
+                    self.times_up()
+                    return
             except FileNotFoundError:
                 continue
         # clock stop
-        # to-do
-
-        # exame ai move: time exam
-        # to-do
+        used_time = time.monotonic() - begin_time
+        self.label['text'] = 'time take: {0:.5f} seconds'.format(used_time)
+        print('time take: {0:.5f} seconds'.format(used_time)) 
 
         ai_move = int(input_line[1])
         # exame ai move: out of bound
         if ai_move< 0 or ai_move > 216:
-            print("ai move out of bound!")
-            if self.turn%2 == 0:
-                self.label['text'] = "Player black wins!"
-            else:
-                self.label['text'] = "Player white wins!"
+            self.label['text'] = self.label['text'] + "\nai move out of bound! You win!"
+            print("ai move out of bound! You win!")
+            return
 
         # exame ai move: move already taken
         if self.game_state[ai_move][1] != 0:
-            print("ai illegal move!")
-            if self.turn%2 == 0:
-                self.label['text'] = "Player black wins!"
-            else:
-                self.label['text'] = "Player white wins!"
+            self.label['text'] = self.label['text'] + "\nai illegal move! You win!"
+            print("ai illegal move! You win!")
+            return
 
         # place ai move on board
         if self.turn%2 == 0:
@@ -306,6 +318,10 @@ class gomoku:
 
     def distance(self,x1,y1,x2,y2):
         return math.sqrt((x1-x2)**2 + (y1-y2)**2)
+
+    def times_up(self):
+        self.label['text'] = "ai time expired. You win!"
+        print("ai time expired. You win!")
 
 
 
