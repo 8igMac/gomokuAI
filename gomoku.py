@@ -87,7 +87,10 @@ class gomoku:
         s = 'a' # just a buffer
         self.turn = self.turn+1
         with open('state_27.txt', 'w') as f:
-            f.write(str(self.turn))
+            # write game state
+            f.write(str(self.turn)+"\n")
+            for item in self.game_state:
+                f.write(str(item[1])+" ")
         print("AI is thinking...")
         while str(self.turn) != s:
             with open('move_27.txt', 'r') as f:
