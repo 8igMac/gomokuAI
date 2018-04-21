@@ -4,3 +4,7 @@
 # test txt file
 *.txt
 
+# test related file
+test.py
+test.cpp
+test
