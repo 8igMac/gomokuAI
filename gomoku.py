@@ -190,8 +190,10 @@ class gomoku:
             # win
             if(self.game_state[idx][1] == 1):
                 self.label['text'] = "Player black wins!"
+                print("Player black wins!")
             else:
                 self.label['text'] = "Player white wins!"
+                print("Player white wins!")
             self.end()
 
         # check \
@@ -210,8 +212,10 @@ class gomoku:
             # win
             if(self.game_state[idx][1] == 1):
                 self.label['text'] = "Player black wins!"
+                print("Player black wins!")
             else:
                 self.label['text'] = "Player white wins!"
+                print("Player white wins!")
             self.end()
 
         # check /
@@ -230,8 +234,10 @@ class gomoku:
             # win
             if(self.game_state[idx][1] == 1):
                 self.label['text'] = "Player black wins!"
+                print("Player black wins!")
             else:
                 self.label['text'] = "Player white wins!"
+                print("Player white wins!")
             self.end()
 
         # check draw
