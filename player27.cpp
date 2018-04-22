@@ -5,6 +5,7 @@
 #include <string>
 #include <thread>
 #include <chrono>
+#include "game_tree.h"
 
 using namespace std;
 
@@ -12,11 +13,12 @@ using namespace std;
 #define STATE_FILE "state_27.txt"
 #define MOVE_FILE "move_27.txt"
 
-
 int main() {
-
-	fstream f;
-	f.open(STATE_FILE);
+	fstream f(STATE_FILE);
+	int get_turn = -1;
+	int next_turn = -2;
+	int next_move = -1;
+	vector<int> board(217,0); // game board
 
 	/* check file exist */
 	while(!f) 
@@ -30,19 +32,14 @@ int main() {
 	f.close();
 
 
-	int get_turn = -1;
-	int next_turn = -2;
-	int next_move = -1;
-	vector<int> game_state(217,0);
-
 	while(1) {
 		/* read game state file */
 		while(1) {
 			f.open(STATE_FILE);
 			f >> get_turn;
 			if(get_turn == next_turn) {
-				for(int i=0; i<game_state.size(); i++) {
-					f >> game_state[i];
+				for(int i=0; i<board.size(); i++) {
+					f >> board[i];
 				}
 				f.close();
 				break;
@@ -56,18 +53,14 @@ int main() {
 		// debug: print read message
 		if(DEBUG) {
 			cout << get_turn << endl;
-			for(auto item: game_state)
+			for(auto item: board)
 				cout << item << " ";
 			cout << endl;
 		}
 
 		/* calculate next move */
-		for(int i=0; i<game_state.size(); i++) 
-			if(game_state[i] == 0) {
-				next_move = i;
-				break;
-			}
-		this_thread::sleep_for(chrono::milliseconds(2000)); // sleep for 2 secs
+		game_tree tree;
+		next_move = tree.next_move(board);
 
 		// debug: print ai's next move
 		if(DEBUG)
@@ -80,13 +73,6 @@ int main() {
 
 		next_turn+=2;
 	}
-
-
-
-	
-
-	
-
 
 	return 0;
 }

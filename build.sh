@@ -3,5 +3,5 @@
 rm *.txt
 rm test*
 
-g++ player27.cpp -o player27
+g++ player27.cpp game_tree.cpp -o player27
 
