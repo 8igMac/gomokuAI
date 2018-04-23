@@ -24,6 +24,6 @@ class game_tree {
 		vector<int> genNextMove(vector<int> board);
 		int maxValue(vector<int> board);
 		int minValue(vector<int> board);
-		vector<int> result(vector<int> board, int action);
+		vector<int> result(vector<int> board, int action, int who);
 };
 #endif
