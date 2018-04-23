@@ -12,6 +12,7 @@ using namespace std;
 #define DEBUG 0
 #define STATE_FILE "state_27.txt"
 #define MOVE_FILE "move_27.txt"
+#define SEARCH_DEPTH 4
 
 int main() {
 	fstream f(STATE_FILE);
@@ -60,7 +61,7 @@ int main() {
 
 		/* calculate next move */
 		game_tree tree;
-		next_move = tree.next_move(board);
+		next_move = tree.next_move(board, SEARCH_DEPTH);
 
 		// debug: print ai's next move
 		if(DEBUG)

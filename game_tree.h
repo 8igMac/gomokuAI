@@ -15,15 +15,15 @@ class game_tree {
 		~game_tree() {
 			destroy_tree(root);
 		}
-		int next_move(vector<int> board);
+		int next_move(vector<int> board, int depth);
 
 	private:
 		void destroy_tree(node* leaf);
 		node* root;
 		int evafunc(vector<int> board);
 		vector<int> genNextMove(vector<int> board);
-		int maxValue(vector<int> board);
-		int minValue(vector<int> board);
+		int maxValue(vector<int> board, int depth);
+		int minValue(vector<int> board, int depth);
 		vector<int> result(vector<int> board, int action, int who);
 };
 #endif
