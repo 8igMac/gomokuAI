@@ -22,5 +22,8 @@ class game_tree {
 		node* root;
 		int evafunc(vector<int> board);
 		vector<int> genNextMove(vector<int> board);
+		int maxValue(vector<int> board);
+		int minValue(vector<int> board);
+		vector<int> result(vector<int> board, int action);
 };
 #endif
