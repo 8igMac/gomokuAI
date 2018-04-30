@@ -23,7 +23,7 @@ class game_tree
 	private:
 		void destroy_tree(node* leaf);
 		node* root;
-		int evafunc(string board);
+		int evaBoard(string board);
 		vector<int> genNextMove(string board);
 		int maxValue(string board, int depth);
 		int minValue(string board, int depth);
@@ -33,5 +33,8 @@ class game_tree
 		vector<vector<int> > hrzLineTb; /* look up table for axis: - */
 		vector<vector<int> > leftLineTb; /* look up table for axis: \ */
 		vector<vector<int> > rightLineTb; /* look up table for axis: / */
+
+		void evaLinePattern(vector<int> linePattern);
+		void evaPattern(int numStoneInRow, vector<int> linePattern, int leftEnd, int rightEnd);
 };
 #endif

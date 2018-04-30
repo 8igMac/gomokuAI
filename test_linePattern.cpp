@@ -15,7 +15,6 @@ using namespace std;
 
 void evaPattern(int numStoneInRow, string linePattern, int leftEnd, int rightEnd)
 {
-	
 	if( numStoneInRow == 5 )
 	{
 		// x11111x
@@ -243,11 +242,37 @@ void score(string linePattern)
 	return;
 }
 
+void evaLinePattern(string linePattern)
+{
+	int pos1, pos2;
+
+	pos1 = 0;
+	while(1) 
+	{
+		// find next '1'
+		while( pos1 < linePattern.size() && linePattern[pos1] != '1' )
+			pos1++;
+	
+		// find next not '1'
+		pos2 = pos1;
+		while( pos2 < linePattern.size() && linePattern[pos2] == '1' )
+			pos2++;
+	
+		if( pos1 >= linePattern.size() )
+			// pos1 out of bound
+			break;
+		else
+			evaPattern(pos2-pos1, linePattern, pos1, pos2-1);
+	
+		pos1 = pos2;
+	}
+}
+
 int main() {
 	string linePattern;
 
 	while(cin >> linePattern) 
-		score( linePattern );
+		evaLinePattern( linePattern );
 
 	return 0;
 }
