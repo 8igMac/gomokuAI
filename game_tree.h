@@ -1,7 +1,6 @@
 #ifndef GAME_TREE_H
 #define GAME_TREE_H
 #include <iostream>
-#include <string>
 #include <vector>
 using namespace std;
 
@@ -9,7 +8,7 @@ using namespace std;
 
 struct node 
 {
-	string board;
+	vector<int> board;
 	vector<node*> child;
 };
 
@@ -18,23 +17,23 @@ class game_tree
 	public:
 		game_tree();
 		~game_tree();
-		int next_move(string board, int depth);
+		int next_move(vector<int> board, int depth);
 
 	private:
 		void destroy_tree(node* leaf);
 		node* root;
-		int evaBoard(string board);
-		vector<int> genNextMove(string board);
-		int maxValue(string board, int depth);
-		int minValue(string board, int depth);
-		string result(string board, int action, int who);
+		int evaBoard(vector<int> board);
+		vector<int> genNextMove(vector<int> board);
+		int maxValue(vector<int> board, int depth);
+		int minValue(vector<int> board, int depth);
+		vector<int> result(vector<int> board, int action, int who);
 
 		void axisLutInit();
 		vector<vector<int> > hrzLineTb; /* look up table for axis: - */
 		vector<vector<int> > leftLineTb; /* look up table for axis: \ */
 		vector<vector<int> > rightLineTb; /* look up table for axis: / */
 
-		void evaLinePattern(vector<int> linePattern);
-		void evaPattern(int numStoneInRow, vector<int> linePattern, int leftEnd, int rightEnd);
+		int evaLinePattern(vector<int> linePattern, vector<int> board);
+		int evaPattern(int numStoneInRow, vector<int> board, vector<int> linePattern, int leftEnd, int rightEnd);
 };
 #endif

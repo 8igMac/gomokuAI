@@ -3,13 +3,27 @@
 #include <algorithm>
 #include <iomanip>
 
-#define fiveInRow 100000 // to-do
+#define WIN5 10000
+#define ALIVE4 1000
+#define DEAD4 1000
+#define LOWDEAD4 1000
+#define ALIVE3 100
+#define JUMPALIVE3 100
+#define DEAD3 100
+#define ALIVE2 10
+#define LOWALIVE2 10
+#define DEAD2 10
+#define NOTHING 0
 
 
 // calculate next best move
-int game_tree::next_move(string board, int depth) 
+int game_tree::next_move(vector<int> board, int depth) 
 {
-
+	cout << evaBoard( board ) << endl; //debug
+	for(int i=0; i<board.size(); i++)
+		if( board[i] == 0 )
+			return i;
+	/*
 	int best_move;
 	int max_value = numeric_limits<int>::min();
 	vector<int> psbMove(genNextMove(board));
@@ -19,16 +33,18 @@ int game_tree::next_move(string board, int depth)
 			best_move = action;
 
 	return best_move;
+	*/
+	
 }
 
 // core of miniMax algorithm
-int game_tree::maxValue(string board, int depth) 
+int game_tree::maxValue(vector<int> board, int depth) 
 {
 	int value = evaBoard(board);
 	int max_value = numeric_limits<int>::min();
 	vector<int> psbMove(genNextMove(board));
 
-	if(value >= fiveInRow || depth == 0)
+	if(value >= WIN5 || depth == 0)
 		return value;
 
 	for(auto action: psbMove)
@@ -36,13 +52,13 @@ int game_tree::maxValue(string board, int depth)
 	
 	return max_value;
 }
-int game_tree::minValue(string board, int depth) 
+int game_tree::minValue(vector<int> board, int depth) 
 {
 	int value = evaBoard(board);
 	int min_value = numeric_limits<int>::max();
 	vector<int> psbMove(genNextMove(board));
 
-	if(value >= fiveInRow || depth == 0)
+	if(value >= WIN5 || depth == 0)
 		return value;
 
 	for(auto action: psbMove)
@@ -52,250 +68,246 @@ int game_tree::minValue(string board, int depth)
 
 // given board status and an action, return a board status
 // who: 1(us), 2(enemy)
-string game_tree::result(string board, int action, int who) 
+vector<int> game_tree::result(vector<int> board, int action, int who) 
 {
 	board[action] = who;
 	return board;
 }
 
 // evaluation function for the whole game board
-int game_tree::evaBoard(string board) 
+int game_tree::evaBoard(vector<int> board) 
 {
+	int score = 0;
 	for(int i=0; i<hrzLineTb.size(); i++)
-		evaLinePattern(hrzLineTb[i]);	
+		score += evaLinePattern( hrzLineTb[i], board );	
 
 	for(int i=0; i<leftLineTb.size(); i++)
-		evaLinePattern(leftLineTb[i]);	
+		score += evaLinePattern( leftLineTb[i], board );	
 	
 	for(int i=0; i<rightLineTb.size(); i++)
-		evaLinePattern(rightLineTb[i]);	
+		score += evaLinePattern( rightLineTb[i], board );	
+
+	return score;
 }
 
-void game_tree::evaLinePattern(vector<int> linePattern)
+int game_tree::evaLinePattern(vector<int> linePattern, vector<int> board)
 {
 	int pos1, pos2;
+	int score = 0;
 
 	pos1 = 0;
 	while(1) 
 	{
 		// find next '1'
-		while( pos1 < linePattern.size() && linePattern[pos1] != '1' )
+		while( pos1 < linePattern.size() && board[ linePattern[pos1] ] != 1 )
 			pos1++;
 	
 		// find next not '1'
 		pos2 = pos1;
-		while( pos2 < linePattern.size() && linePattern[pos2] == '1' )
+		while( pos2 < linePattern.size() && board[ linePattern[pos2] ] == 1 )
 			pos2++;
 	
 		if( pos1 >= linePattern.size() )
 			// pos1 out of bound
 			break;
-		else if( pos2 < linePattern.size() )
-			// pos1 in bound, pos2 in bound
-			evaPattern(pos2-pos1, linePattern, pos1, pos2);
 		else
-			// pos1 in bound, pos2 out of bound
-			evaPattern(pos2-pos1, linePattern, pos1, pos2-1);
+			score += evaPattern(pos2-pos1, board, linePattern, pos1, pos2-1);
 	
 		pos1 = pos2;
 	}
+
+	return score;
 }
 
-void game_tree::evaPattern(int numStoneInRow, vector<int> linePattern, int leftEnd, int rightEnd)
+int game_tree::evaPattern(int numStoneInRow, vector<int> board, vector<int> linePattern, int leftEnd, int rightEnd)
 {
+
 	if( numStoneInRow == 5 )
 	{
 		// x11111x
-		cout << "win5 "; 
-		return;
+		return WIN5; 
 	}
 
 	if( numStoneInRow == 4 )
 	{
-		int left1 = ( leftEnd-1 < 0 ) ? '2' : linePattern[leftEnd-1]; 
-		int right1 = ( rightEnd+1 == linePattern.size() ) ? '2' : linePattern[rightEnd+1]; 
+		int left1 = ( leftEnd-1 < 0 ) ? 2 : board[ linePattern[leftEnd-1] ]; 
+		int right1 = ( rightEnd+1 == linePattern.size() ) ? 2 : board[ linePattern[rightEnd+1] ]; 
 
-		if( left1 == '0' && right1 == '0' )
+		if( left1 == 0 && right1 == 0 )
 			// 011110
-			cout << "alive4 ";
-		else if( ( left1 == '2' && right1 == '0' ) || ( left1 == '0' && right1 == '2' ) )
+			return ALIVE4;
+		else if( ( left1 == 2 && right1 == 0 ) || ( left1 == 0 && right1 == 2 ) )
 			// 211110 or 011112
-			cout << "dead4 ";
+			return DEAD4;
 		else
 			// 211112
-			cout << "nothing ";
-
-		return;
+			return NOTHING;
 	}
 
 	if( numStoneInRow == 3 )
 	{
-		int left1 = ( leftEnd-1 < 0 ) ? '2' : linePattern[leftEnd-1]; 
-		int left2 = ( leftEnd-2 < 0 ) ? '2' : linePattern[leftEnd-2]; 
-		int right1 = ( rightEnd+1 == linePattern.size() ) ? '2' : linePattern[rightEnd+1]; 
-		int right2 = ( rightEnd+2 == linePattern.size() ) ? '2' : linePattern[rightEnd+2]; 
-		int right3 = ( rightEnd+3 == linePattern.size() ) ? '2' : linePattern[rightEnd+3]; 
+		int left1 = ( leftEnd-1 < 0 ) ? 2 : board[ linePattern[leftEnd-1] ]; 
+		int left2 = ( leftEnd-2 < 0 ) ? 2 : board[ linePattern[leftEnd-2] ]; 
+		int right1 = ( rightEnd+1 == linePattern.size() ) ? 2 : board[ linePattern[rightEnd+1] ]; 
+		int right2 = ( rightEnd+2 == linePattern.size() ) ? 2 : board[ linePattern[rightEnd+2] ]; 
+		int right3 = ( rightEnd+3 == linePattern.size() ) ? 2 : board[ linePattern[rightEnd+3] ]; 
 
-		if( left1 != '1' && right1 == '0' && right2 == '1' && right3 != '1' )
+		if( left1 != 1 && right1 == 0 && right2 == 1 && right3 != 1 )
 			// x11101x
-			cout << "lowDead4 ";
-		else if( ( left2 != '1' && left1 == '0' && right1 == '0' && right2 == '0') ||
-						 ( right2 != '1' && right1 == '0' && left1 == '0' && left2 == '0' ) )
+			return LOWDEAD4;
+		else if( ( left2 != 1 && left1 == 0 && right1 == 0 && right2 == 0) ||
+						 ( right2 != 1 && right1 == 0 && left1 == 0 && left2 == 0 ) )
 			// x011100 or 001110x
-			cout << "alive3 ";
-		else if( ( left1 == '2' && right1 == '0' && right2 == '0' ) ||
-						 ( right1 == '2' && left1 == '0' && left2 == '0' ) )
+			return ALIVE3;
+		else if( ( left1 == 2 && right1 == 0 && right2 == 0 ) ||
+						 ( right1 == 2 && left1 == 0 && left2 == 0 ) )
 			// 211100 or 001112
-			cout << "dead3 ";
-		else if( left2 == '2' && left1 == '0' && right1 == '0' && right2 == '2' )
+			return DEAD3;
+		else if( left2 == 2 && left1 == 0 && right1 == 0 && right2 == 2 )
 			// 2011102
-			cout << "dead3 ";
-
-		return;
+			return DEAD3;
 	}
 
 	if( numStoneInRow == 2 )
 	{
-		int left1 = ( leftEnd-1 < 0 ) ? '2' : linePattern[leftEnd-1]; 
-		int left2 = ( leftEnd-2 < 0 ) ? '2' : linePattern[leftEnd-2]; 
-		int left3 = ( leftEnd-3 < 0 ) ? '2' : linePattern[leftEnd-3]; 
-		int right1 = ( rightEnd+1 == linePattern.size() ) ? '2' : linePattern[rightEnd+1]; 
-		int right2 = ( rightEnd+2 == linePattern.size() ) ? '2' : linePattern[rightEnd+2]; 
-		int right3 = ( rightEnd+3 == linePattern.size() ) ? '2' : linePattern[rightEnd+3]; 
-		int right4 = ( rightEnd+4 == linePattern.size() ) ? '2' : linePattern[rightEnd+4]; 
+		int left1 = ( leftEnd-1 < 0 ) ? 2 : board[ linePattern[leftEnd-1] ]; 
+		int left2 = ( leftEnd-2 < 0 ) ? 2 : board[ linePattern[leftEnd-2] ]; 
+		int left3 = ( leftEnd-3 < 0 ) ? 2 : board[ linePattern[leftEnd-3] ]; 
+		int right1 = ( rightEnd+1 == linePattern.size() ) ? 2 : board[ linePattern[rightEnd+1] ]; 
+		int right2 = ( rightEnd+2 == linePattern.size() ) ? 2 : board[ linePattern[rightEnd+2] ]; 
+		int right3 = ( rightEnd+3 == linePattern.size() ) ? 2 : board[ linePattern[rightEnd+3] ]; 
+		int right4 = ( rightEnd+4 == linePattern.size() ) ? 2 : board[ linePattern[rightEnd+4] ]; 
 
-		if( left1 != '1' && right1 == '0' && right2 == '1' && right3 == '1' && right4 != '1' )
+		if( left1 != 1 && right1 == 0 && right2 == 1 && right3 == 1 && right4 != 1 )
 			// x11011x
-			cout << "lowDead4 ";
-		else if( left1 == '0' && right1 == '0' && right2 == '1' && right3 == '0' )
+			return LOWDEAD4;
+		else if( left1 == 0 && right1 == 0 && right2 == 1 && right3 == 0 )
 			// 011010
-			cout << "jumpAlive3 ";
-		else if( left1 == '2' && right1 == '0' && right2 == '1' && right3 == '0' )
+			return JUMPALIVE3;
+		else if( left1 == 2 && right1 == 0 && right2 == 1 && right3 == 0 )
 			// 211010
-			cout << "dead3 ";
-		else if( left1 == '0' && right1 == '0' && right2 == '1' && right3 == '2' )
+			return DEAD3;
+		else if( left1 == 0 && right1 == 0 && right2 == 1 && right3 == 2 )
 			// 011012
-			cout << "dead3 ";
-		else if( left1 != '1' && right1 == '0' && right2 == '0' && right3 == '1' && right4 != '1' )
+			return DEAD3;
+		else if( left1 != 1 && right1 == 0 && right2 == 0 && right3 == 1 && right4 != 1 )
 			// x11001x
-			cout << "dead3 ";
-		else if( left2 == '0' && left1 == '0' && right1 == '0' && right2 == '0')
+			return DEAD3;
+		else if( left2 == 0 && left1 == 0 && right1 == 0 && right2 == 0)
 			// 001100
-			cout << "alive2 ";
-		else if( ( left1 == '2' && right1 == '0' && right2 == '0' && right3 == '0') ||
-						 ( right1 == '2' && left1 == '0' && left2 == '0' && left3 == '0') )
+			return ALIVE2;
+		else if( ( left1 == 2 && right1 == 0 && right2 == 0 && right3 == 0) ||
+						 ( right1 == 2 && left1 == 0 && left2 == 0 && left3 == 0) )
 			// 211000 or 000112
-			cout << "dead2 ";
-		else if( ( left3 == '2' && left2 == '0' && left1 == '0' && right1 == '0' && right2 == '2') ||
-						 ( right3 == '2' && right2 == '0' && right1 == '0' && left1 == '0' && left2 == '2' ) )
+			return DEAD2;
+		else if( ( left3 == 2 && left2 == 0 && left1 == 0 && right1 == 0 && right2 == 2) ||
+						 ( right3 == 2 && right2 == 0 && right1 == 0 && left1 == 0 && left2 == 2 ) )
 			// 2001102 or 2011002
-			cout << "dead2 ";
+			return DEAD2;
 
-		return;
 	}
 
 	if( numStoneInRow == 1 )
 	{
-		int left1 = ( leftEnd-1 < 0 ) ? '2' : linePattern[leftEnd-1]; 
-		int left2 = ( leftEnd-2 < 0 ) ? '2' : linePattern[leftEnd-2]; 
-		int left3 = ( leftEnd-3 < 0 ) ? '2' : linePattern[leftEnd-3]; 
-		int left4 = ( leftEnd-4 < 0 ) ? '2' : linePattern[leftEnd-4]; 
-		int right1 = ( rightEnd+1 == linePattern.size() ) ? '2' : linePattern[rightEnd+1]; 
-		int right2 = ( rightEnd+2 == linePattern.size() ) ? '2' : linePattern[rightEnd+2]; 
-		int right3 = ( rightEnd+3 == linePattern.size() ) ? '2' : linePattern[rightEnd+3]; 
-		int right4 = ( rightEnd+4 == linePattern.size() ) ? '2' : linePattern[rightEnd+4]; 
-		int right5 = ( rightEnd+5 == linePattern.size() ) ? '2' : linePattern[rightEnd+5]; 
+		int left1 = ( leftEnd-1 < 0 ) ? 2 : board[ linePattern[leftEnd-1] ]; 
+		int left2 = ( leftEnd-2 < 0 ) ? 2 : board[ linePattern[leftEnd-2] ]; 
+		int left3 = ( leftEnd-3 < 0 ) ? 2 : board[ linePattern[leftEnd-3] ]; 
+		int left4 = ( leftEnd-4 < 0 ) ? 2 : board[ linePattern[leftEnd-4] ]; 
+		int right1 = ( rightEnd+1 == linePattern.size() ) ? 2 : board[ linePattern[rightEnd+1] ]; 
+		int right2 = ( rightEnd+2 == linePattern.size() ) ? 2 : board[ linePattern[rightEnd+2] ]; 
+		int right3 = ( rightEnd+3 == linePattern.size() ) ? 2 : board[ linePattern[rightEnd+3] ]; 
+		int right4 = ( rightEnd+4 == linePattern.size() ) ? 2 : board[ linePattern[rightEnd+4] ]; 
+		int right5 = ( rightEnd+5 == linePattern.size() ) ? 2 : board[ linePattern[rightEnd+5] ]; 
 
 		// x1---1x
-		if( left1 != '1' && right1 == '0' && right4 == '1' && right5 != '1'	)
+		if( left1 != 1 && right1 == 0 && right4 == 1 && right5 != 1	)
 		{
-			if( right2 == '1' && right3 == '1' )
+			if( right2 == 1 && right3 == 1 )
 				// x10(11)1x
-				cout << "lowdead4 ";
-			else if( right2 == '0' && right3 == '0' )
+				return LOWDEAD4;
+			else if( right2 == 0 && right3 == 0 )
 				// x10(00)1x
-				cout << "dead2 ";
-			else if( right2 == '1' && right3 == '0' )
+				return DEAD2;
+			else if( right2 == 1 && right3 == 0 )
 				// x10(10)1x
-				cout << "dead3 ";
-			else if( right2 == '0' && right3 == '1' )
+				return DEAD3;
+			else if( right2 == 0 && right3 == 1 )
 				// x10(01)1x
-				cout << "dead3 ";
+				return DEAD3;
 		}
 		// 010-1
-		else if( left1 == '0' && right1 == '0' && right3 == '1' )
+		else if( left1 == 0 && right1 == 0 && right3 == 1 )
 		{
-			if( right4 == '0' )
+			if( right4 == 0 )
 			{
-				if(right2 == '0')
+				if(right2 == 0)
 					// 010010
-					cout << "lowAlive2 ";
+					return LOWALIVE2;
 				else 
 					// 010110
-					cout << "jumpAlive3 ";
+					return JUMPALIVE3;
 			}
-			else if( right2 == '1' && right4 == '2' )
+			else if( right2 == 1 && right4 == 2 )
 				// 010112
-				cout << "dead3 ";
-			else if( left2 == '2' && right2 == '0' && right4 == '2' )
+				return DEAD3;
+			else if( left2 == 2 && right2 == 0 && right4 == 2 )
 				// 2010012
-				cout << "dead2 ";
+				return DEAD2;
 		}
 		// 21---0
-		else if( left1 == '2' && right4 == '0' )
+		else if( left1 == 2 && right4 == 0 )
 		{
-			if( right1 == '0' )
+			if( right1 == 0 )
 			{
-				if( right2 == '1' && right3 == '0' )
+				if( right2 == 1 && right3 == 0 )
 					// 210100
-					cout << "dead2 ";
-				else if( right2 == '0' && right3 == '1' )
+					return DEAD2;
+				else if( right2 == 0 && right3 == 1 )
 					// 210010
-					cout << "dead2 ";
-				else if( right2 == '1' && right3 == '1' )
+					return DEAD2;
+				else if( right2 == 1 && right3 == 1 )
 					// 210110
-					cout << "dead3 ";
+					return DEAD3;
 			}
-			else if( right1 == '1' && right2 == '0' && right3 == '1' )
+			else if( right1 == 1 && right2 == 0 && right3 == 1 )
 				// 211010
-				cout << "dead3 ";
+				return DEAD3;
 		}
 		// 210---2
-		else if( left1 == '2' && right1 == '0' && right5 == '2' )
+		else if( left1 == 2 && right1 == 0 && right5 == 2 )
 		{
-			if( right2 == '1' && right3 == '0' && right4 == '0' )
+			if( right2 == 1 && right3 == 0 && right4 == 0 )
 				// 2101002
-				cout << "dead2 ";
-			else if( right2 == '0' && right3 == '1' && right4 == '0' )
+				return DEAD2;
+			else if( right2 == 0 && right3 == 1 && right4 == 0 )
 				// 2100102
-				cout << "dead2 ";
-			else if( right2 == '0' && right3 == '0' && right4 == '1' )
+				return DEAD2;
+			else if( right2 == 0 && right3 == 0 && right4 == 1 )
 				// 2100012
-				cout << "dead2 ";
+				return DEAD2;
 		}
 		// 2010--2
-		else if( left2 == '2' && left1 == '0' && right1 == '0' && right2 == '1' && right3 == '0' && right4 == '2' )
+		else if( left2 == 2 && left1 == 0 && right1 == 0 && right2 == 1 && right3 == 0 && right4 == 2 )
 			// 2010102
-			cout << "dead2 ";
-		else if( left3 == '2' && left2 == '0' && left1 == '0' && right1 == '0' && right2 == '1' && right3 == '2')
+			return DEAD2;
+		else if( left3 == 2 && left2 == 0 && left1 == 0 && right1 == 0 && right2 == 1 && right3 == 2)
 			// 2001012
-			cout << "dead2 ";
-		else if( ( left2 != '1' && left1 == '0' && right1 == '0' && right2 == '1' && right3 == '0' && right4 == '0' ) ||
-				( left2 == '0' && left1 == '0' && right1 == '0' && right2 == '1' && right3 == '0' && right4 != '1' ) )
+			return DEAD2;
+		else if( ( left2 != 1 && left1 == 0 && right1 == 0 && right2 == 1 && right3 == 0 && right4 == 0 ) ||
+				( left2 == 0 && left1 == 0 && right1 == 0 && right2 == 1 && right3 == 0 && right4 != 1 ) )
 			// x010100 or 001010x
-			cout << "lowAlive2 ";
-		else if( left2 == '0' && left1 == '0' && right1 == '0' && right2 == '1' && right3 == '2' )
+			return LOWALIVE2;
+		else if( left2 == 0 && left1 == 0 && right1 == 0 && right2 == 1 && right3 == 2 )
 			// 001012
-			cout << "dead2 ";
+			return DEAD2;
 
-		return;
 	}
 
-	cout << "nothing ";
+	return NOTHING;
 }
 
 // generate next possible move
-vector<int> game_tree::genNextMove(string board) 
+vector<int> game_tree::genNextMove(vector<int> board) 
 {
 
 }

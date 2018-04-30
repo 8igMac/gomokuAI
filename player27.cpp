@@ -2,7 +2,6 @@
 #include <fstream>
 #include <vector>
 #include <sstream>
-#include <string>
 #include <thread>
 #include <chrono>
 #include "game_tree.h"
@@ -28,7 +27,7 @@ int main()
 	int get_turn = -1;
 	int next_turn = -2;
 	int next_move = -1;
-	string board(217, '0');
+	vector<int> board(217, '0');
 
 	/* check file exist */
 	while(!f) 
