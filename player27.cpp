@@ -9,39 +9,51 @@
 
 using namespace std;
 
-#define DEBUG 0
 #define STATE_FILE "state_27.txt"
 #define MOVE_FILE "move_27.txt"
 #define SEARCH_DEPTH 4
 
-int main() {
+// for debug purpose
+void test() 
+{
+	game_tree board;
+	return;
+}
+
+int main() 
+{
+	test(); // debug
+
 	fstream f(STATE_FILE);
 	int get_turn = -1;
 	int next_turn = -2;
 	int next_move = -1;
-	vector<int> board(217,0); // game board
+	string board(217, '0');
 
 	/* check file exist */
 	while(!f) 
 		f.open(STATE_FILE);
 
 	/* check file not empty */
-	while(f.peek() == ifstream::traits_type::eof()) {
+	while(f.peek() == ifstream::traits_type::eof()) 
+	{
 		f.close();
 		f.open(STATE_FILE);
 	}
 	f.close();
 
 
-	while(1) {
+	while(1) 
+	{
 		/* read game state file */
-		while(1) {
+		while(1) 
+		{
 			f.open(STATE_FILE);
 			f >> get_turn;
-			if(get_turn == next_turn) {
-				for(int i=0; i<board.size(); i++) {
+			if(get_turn == next_turn) 
+			{
+				for(int i=0; i<board.size(); i++) 
 					f >> board[i];
-				}
 				f.close();
 				break;
 			}
@@ -52,7 +64,8 @@ int main() {
 		}
 
 		// debug: print read message
-		if(DEBUG) {
+		if(DEBUG) 
+		{
 			cout << get_turn << endl;
 			for(auto item: board)
 				cout << item << " ";

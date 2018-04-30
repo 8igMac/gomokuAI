@@ -1,29 +1,37 @@
 #ifndef GAME_TREE_H
 #define GAME_TREE_H
-#include <vector>
 #include <iostream>
+#include <string>
+#include <vector>
 using namespace std;
 
-struct node {
-	vector<int> board;
+#define DEBUG 0
+
+struct node 
+{
+	string board;
 	vector<node*> child;
 };
 
-class game_tree {
+class game_tree 
+{
 	public:
-		game_tree() : root(NULL) {}
-		~game_tree() {
-			destroy_tree(root);
-		}
-		int next_move(vector<int> board, int depth);
+		game_tree();
+		~game_tree();
+		int next_move(string board, int depth);
 
 	private:
 		void destroy_tree(node* leaf);
 		node* root;
-		int evafunc(vector<int> board);
-		vector<int> genNextMove(vector<int> board);
-		int maxValue(vector<int> board, int depth);
-		int minValue(vector<int> board, int depth);
-		vector<int> result(vector<int> board, int action, int who);
+		int evafunc(string board);
+		vector<int> genNextMove(string board);
+		int maxValue(string board, int depth);
+		int minValue(string board, int depth);
+		string result(string board, int action, int who);
+
+		void axisLutInit();
+		vector<vector<int> > hrzLineTb; /* look up table for axis: - */
+		vector<vector<int> > leftLineTb; /* look up table for axis: \ */
+		vector<vector<int> > rightLineTb; /* look up table for axis: / */
 };
 #endif
