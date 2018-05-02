@@ -114,6 +114,12 @@ class game_tree
 		bool hasNeighbor(vector<int> board, int index);
 
 
+		/*************************************************
+		 * 
+		 *  total program efficiency evalutation related  	
+		 *
+		 * ***********************************************/
+		int totalCreatedNode;
 
 
 		/*******************************

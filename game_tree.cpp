@@ -37,8 +37,9 @@ int game_tree::next_move(vector<int> board, int depth)
 	}
 	*/
 
-	int best_move;
+	int best_move = 108;
 	int max_value = numeric_limits<int>::min();
+	totalCreatedNode++;
 	vector<int> psbMove(genNextMove(board));
 
 	for(auto action: psbMove) 
@@ -56,12 +57,14 @@ int game_tree::next_move(vector<int> board, int depth)
 
 	cout << "max value: " << max_value << endl; // debug
 	cout << "best move: " << best_move << endl; // debug
+	cout << "total node created: " << totalCreatedNode << endl; //debug
 	return best_move;
 }
 
 // core of miniMax algorithm
 int game_tree::maxValue(vector<int> board, int depth) 
 {
+	totalCreatedNode++;
 	int value = evaBoard(board);
 	int max_value = numeric_limits<int>::min();
 	vector<int> psbMove(genNextMove(board));
@@ -80,6 +83,7 @@ int game_tree::maxValue(vector<int> board, int depth)
 }
 int game_tree::minValue(vector<int> board, int depth) 
 {
+	totalCreatedNode++;
 	int value = evaBoard(board);
 	int min_value = numeric_limits<int>::max();
 	vector<int> psbMove(genNextMove(board));
@@ -185,13 +189,15 @@ void game_tree::evaPattern(int numStoneInRow, vector<int> board, vector<int> lin
 	if( numStoneInRow == 4 )
 	{
 		int left1 = ( leftEnd-1 < 0 ) ? barrier : board[ linePattern[leftEnd-1] ]; 
+		int left2 = ( leftEnd-2 < 0 ) ? barrier : board[ linePattern[leftEnd-2] ]; 
 		int right1 = ( rightEnd+1 >= linePattern.size() ) ? barrier : board[ linePattern[rightEnd+1] ]; 
+		int right2 = ( rightEnd+2 >= linePattern.size() ) ? barrier : board[ linePattern[rightEnd+2] ]; 
 
 		if( left1 == 0 && right1 == 0 )
 			// 011110
 			evaResult[ ALIVE4 ]++;
-		else if( ( left1 == barrier && right1 == 0 ) || ( left1 == 0 && right1 == barrier ) )
-			// 211110 or 011112
+		else if( ( left1 == barrier && right1 == 0 && right2 != target) || ( left2 != target && left1 == 0 && right1 == barrier ) )
+			// 211110x or x011112
 			evaResult[ DEAD4 ]++;
 		else
 			// 211112
@@ -409,7 +415,8 @@ bool game_tree::hasNeighbor(vector<int> board, int index)
 }
 
 
-game_tree::game_tree() : root(NULL), hrzLineTb(17), leftLineTb(17), rightLineTb(17), pos2axis(217, vector<pair<int, int> >(3)), evaResult(11,0)
+// constructor
+game_tree::game_tree() : root(NULL), hrzLineTb(17), leftLineTb(17), rightLineTb(17), pos2axis(217, vector<pair<int, int> >(3)), evaResult(11,0), totalCreatedNode(0)
 {
 	// initialize look up table for each axis
 	axisLutInit();
