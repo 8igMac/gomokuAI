@@ -38,9 +38,9 @@ class game_tree
 		 *
 		 * ***************************/
 		// minimax: max
-		int maxValue(vector<int> board, int depth);
+		int maxValue(vector<int> board, int depth, pair<int,int> &alphaBeta);
 		// minimax: min
-		int minValue(vector<int> board, int depth);
+		int minValue(vector<int> board, int depth, pair<int,int> &alphaBeta);
 		// change game board according to action done
 		vector<int> result(vector<int> board, int action, int who);
 

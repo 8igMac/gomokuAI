@@ -37,15 +37,18 @@ int game_tree::next_move(vector<int> board, int depth)
 	}
 	*/
 
-	int best_move = 108;
+	int best_move = 108; // center of the game board
 	int max_value = numeric_limits<int>::min();
+	// ( alpha, beta )
+	// alpha: best choise for MAX so far
+	// beta: best choise for MIN so far
+	pair<int,int> alphaBeta( numeric_limits<int>::min(), numeric_limits<int>::max() );  
 	totalCreatedNode++;
 	vector<int> psbMove(genNextMove(board));
 
 	for(auto action: psbMove) 
 	{
-		int minvalue = minValue(result(board, action, 1), depth-1);
-		cout << minvalue << endl; //debug
+		int minvalue = minValue(result(board, action, 1), depth-1, alphaBeta);
 		if( max_value < minvalue )
 		{
 			max_value = minvalue;
@@ -62,7 +65,7 @@ int game_tree::next_move(vector<int> board, int depth)
 }
 
 // core of miniMax algorithm
-int game_tree::maxValue(vector<int> board, int depth) 
+int game_tree::maxValue(vector<int> board, int depth, pair<int,int> &alphaBeta) 
 {
 	totalCreatedNode++;
 	int value = evaBoard(board);
@@ -74,14 +77,20 @@ int game_tree::maxValue(vector<int> board, int depth)
 
 	for(auto action: psbMove)
 	{
-		max_value = max(max_value, minValue(result(board,action,1), depth-1));
+		max_value = max(max_value, minValue(result(board,action,1), depth-1, alphaBeta));
+
+		// alpha-beta prunning
+		if( max_value >= alphaBeta.second )
+			return max_value;
+		alphaBeta.first = max( alphaBeta.first, max_value );
+
 		if( max_value >= WIN5SCORE )
 			break;
 	}
 	
 	return max_value;
 }
-int game_tree::minValue(vector<int> board, int depth) 
+int game_tree::minValue(vector<int> board, int depth, pair<int,int> &alphaBeta) 
 {
 	totalCreatedNode++;
 	int value = evaBoard(board);
@@ -95,7 +104,13 @@ int game_tree::minValue(vector<int> board, int depth)
 
 	for(auto action: psbMove)
 	{
-		min_value = min(min_value, maxValue(result(board,action,2), depth-1));
+		min_value = min(min_value, maxValue(result(board,action,2), depth-1, alphaBeta));
+		
+		// alpha-beta prunning
+		if( min_value <= alphaBeta.first )
+			return min_value;
+		alphaBeta.second = min( alphaBeta.second, min_value );
+
 		if( min_value <= -WIN5SCORE )
 			break;
 	}

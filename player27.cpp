@@ -10,7 +10,7 @@ using namespace std;
 
 #define STATE_FILE "state_27.txt"
 #define MOVE_FILE "move_27.txt"
-#define SEARCH_DEPTH 2
+#define SEARCH_DEPTH 4
 
 // for debug purpose
 void test() 
