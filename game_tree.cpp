@@ -2,6 +2,8 @@
 #include <limits>
 #include <algorithm>
 #include <iomanip>
+#include <map>
+#include <functional>
 
 #define WIN5 0
 #define ALIVE4 1
@@ -16,6 +18,7 @@
 #define NOTHING 10
 
 #define WIN5SCORE 10000000
+#define NUMGOODMOVES 8
 
 
 // calculate next best move
@@ -44,7 +47,7 @@ int game_tree::next_move(vector<int> board, int depth)
 	// beta: best choise for MIN so far
 	pair<int,int> alphaBeta( numeric_limits<int>::min(), numeric_limits<int>::max() );  
 	totalCreatedNode++;
-	vector<int> psbMove(genNextMove(board));
+	vector<int> psbMove(genNextMove(board, 1));
 
 	for(auto action: psbMove) 
 	{
@@ -70,7 +73,7 @@ int game_tree::maxValue(vector<int> board, int depth, pair<int,int> &alphaBeta)
 	totalCreatedNode++;
 	int value = evaBoard(board);
 	int max_value = numeric_limits<int>::min();
-	vector<int> psbMove(genNextMove(board));
+	vector<int> psbMove(genNextMove(board, 1));
 
 	if(value >= WIN5SCORE || depth == 0)
 		return value;
@@ -95,7 +98,7 @@ int game_tree::minValue(vector<int> board, int depth, pair<int,int> &alphaBeta)
 	totalCreatedNode++;
 	int value = evaBoard(board);
 	int min_value = numeric_limits<int>::max();
-	vector<int> psbMove(genNextMove(board));
+	vector<int> psbMove(genNextMove(board, 2));
 
 	if(value >= WIN5SCORE || depth == 0)
 	{
@@ -390,14 +393,99 @@ void game_tree::evaPattern(int numStoneInRow, vector<int> board, vector<int> lin
 }
 
 // generate next possible move
-vector<int> game_tree::genNextMove(vector<int> board) 
+vector<int> game_tree::genNextMove(vector<int> board, int who) 
 {
-	vector<int> psbMove;
-	for(int i=0; i<board.size(); i++)
-		if( board[i] == 0 && hasNeighbor(board, i) )
-			psbMove.push_back(i);
+	int i=0;
+	multimap<int,int>::iterator itr;
+	vector<int> goodMove;
+	multimap<int, int, greater<int>> psbMove;
 
-	return psbMove;
+	for(i=0; i<board.size(); i++)
+		if( board[i] == 0 && hasNeighbor(board, i) )
+			psbMove.insert( pair<int,int>( evaPoint(board, i, who), i ) );
+
+
+	/*
+	// forward prunning
+	for( itr=psbMove.begin(), i=0; i<NUMGOODMOVES && itr != psbMove.end(); itr++, i++ )
+		goodMove.push_back(itr->second);
+		*/
+	for( itr=psbMove.begin(); itr != psbMove.end(); itr++ )
+		goodMove.push_back(itr->second);
+
+	return goodMove;
+}
+
+// evaluate action
+int game_tree::evaPoint(vector<int> board, int action, int who)
+{
+	int score;
+	int opponent = ( who == 1 ) ? 2 : 1;
+	vector<int> oldUsTable(11), newUsTable(11), oldOppoTable(11), newOppoTable(11);
+	vector<int> newBoard( result( board, action, who ) );
+
+	// us
+	clearEvaResult();
+	evaLinePattern( hrzLineTb[ pos2axis[action][0].first ], board, who );	
+	evaLinePattern( leftLineTb[ pos2axis[action][1].first ], board, who );	
+	evaLinePattern( rightLineTb[ pos2axis[action][2].first ], board, who );	
+
+	oldUsTable = evaResult;
+
+	clearEvaResult();
+	evaLinePattern( hrzLineTb[ pos2axis[action][0].first ], newBoard, who );	
+	evaLinePattern( leftLineTb[ pos2axis[action][1].first ], newBoard, who );	
+	evaLinePattern( rightLineTb[ pos2axis[action][2].first ], newBoard, who );	
+
+	newUsTable = evaResult;
+
+	// opponent
+	clearEvaResult();
+	evaLinePattern( hrzLineTb[ pos2axis[action][0].first ], board, opponent );	
+	evaLinePattern( leftLineTb[ pos2axis[action][1].first ], board, opponent );	
+	evaLinePattern( rightLineTb[ pos2axis[action][2].first ], board, opponent );	
+
+	oldOppoTable = evaResult;
+
+	clearEvaResult();
+	evaLinePattern( hrzLineTb[ pos2axis[action][0].first ], newBoard, opponent );	
+	evaLinePattern( leftLineTb[ pos2axis[action][1].first ], newBoard, opponent );	
+	evaLinePattern( rightLineTb[ pos2axis[action][2].first ], newBoard, opponent );	
+
+	newOppoTable = evaResult;
+
+	// scoring
+	// ALIVE4 
+	score += ( ( newUsTable[1] - oldUsTable[1] )*6000 ); // attack
+	score += ( ( oldOppoTable[1] - newOppoTable[1] )*15000 ); // defend
+		
+	// DEAD4 
+	score += ( ( newUsTable[2] - oldUsTable[2] )*2000 );
+	score += ( ( newUsTable[3] - oldUsTable[3] )*2000 );
+	score += ( ( oldOppoTable[2] - newOppoTable[2] )*15000 );
+	score += ( ( oldOppoTable[3] - newOppoTable[3] )*15000 );
+		
+	// ALIVE3 
+	score += ( ( newUsTable[4] - oldUsTable[4] )*1200 );
+	score += ( ( newUsTable[5] - oldUsTable[5] )*1200 );
+	score += ( ( oldOppoTable[4] - newOppoTable[4] )*2400 );
+	score += ( ( oldOppoTable[5] - newOppoTable[5] )*2400 );
+		
+	// DEAD3 
+	score += ( ( newUsTable[6] - oldUsTable[6] )*400 );
+	score += ( ( oldOppoTable[6] - newOppoTable[6] )*800 );
+		
+	// ALIVE2 
+	score += ( ( newUsTable[7] - oldUsTable[7] )*500 );
+	score += ( ( newUsTable[8] - oldUsTable[8] )*500 );
+	score += ( ( oldOppoTable[7] - newOppoTable[7] )*1800 );
+	score += ( ( oldOppoTable[8] - newOppoTable[8] )*1800 );
+		
+	// DEAD2 
+	score += ( ( newUsTable[9] - oldUsTable[9] )*100 );
+	score += ( ( oldOppoTable[9] - newOppoTable[9] )*200 );
+		
+	return score;
 }
 
 // see if baord[index] has neighbor
@@ -542,9 +630,9 @@ int game_tree::boardScore()
 	score += evaResult[ ALIVE3 ] * 100;
 	score += evaResult[ JUMPALIVE3 ] * 90;
 	score += evaResult[ ALIVE2 ] * 10;
-	score += evaResult[ LOWALIVE2 ] * 90;
+	score += evaResult[ LOWALIVE2 ] * 9;
 	score += evaResult[ DEAD3 ] * 5;
-	score += evaResult[ DEAD2 ] * 5;
+	score += evaResult[ DEAD2 ] * 2;
 
 	return score;
 }

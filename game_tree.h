@@ -59,8 +59,8 @@ class game_tree
 		/* look up table for axis: / */
 		vector<vector<int> > rightLineTb; 
 		/* look up table for position to axis index:
-		 * 	pair(axis idx, position)
- 		 *  for axis index -> 0: hrz, 1: left, 2: right 
+		 * 	pair(axis idx, position in axis)
+ 		 *  for second layer vector index -> 0: hrz, 1: left, 2: right 
 		 */
 		vector<vector<pair<int, int>> > pos2axis; 
 
@@ -105,13 +105,15 @@ class game_tree
 
 		/*******************************
 		 * 
-		 *  					others  	
+		 *  	move generator related  	
 		 *
 		 * ******************************/
 		// generate next possible move
-		vector<int> genNextMove(vector<int> board);
+		vector<int> genNextMove(vector<int> board, int who);
 		// tell if the position has neighbor
 		bool hasNeighbor(vector<int> board, int index);
+		// evaluate action
+		int evaPoint(vector<int> board, int action, int hwo);
 
 
 		/*************************************************
