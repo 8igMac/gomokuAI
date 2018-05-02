@@ -25,7 +25,7 @@ void evaPattern(int numStoneInRow, string linePattern, int leftEnd, int rightEnd
 	if( numStoneInRow == 4 )
 	{
 		int left1 = ( leftEnd-1 < 0 ) ? '2' : linePattern[leftEnd-1]; 
-		int right1 = ( rightEnd+1 == linePattern.size() ) ? '2' : linePattern[rightEnd+1]; 
+		int right1 = ( rightEnd+1 >= linePattern.size() ) ? '2' : linePattern[rightEnd+1]; 
 
 		if( left1 == '0' && right1 == '0' )
 			// 011110
@@ -44,9 +44,9 @@ void evaPattern(int numStoneInRow, string linePattern, int leftEnd, int rightEnd
 	{
 		int left1 = ( leftEnd-1 < 0 ) ? '2' : linePattern[leftEnd-1]; 
 		int left2 = ( leftEnd-2 < 0 ) ? '2' : linePattern[leftEnd-2]; 
-		int right1 = ( rightEnd+1 == linePattern.size() ) ? '2' : linePattern[rightEnd+1]; 
-		int right2 = ( rightEnd+2 == linePattern.size() ) ? '2' : linePattern[rightEnd+2]; 
-		int right3 = ( rightEnd+3 == linePattern.size() ) ? '2' : linePattern[rightEnd+3]; 
+		int right1 = ( rightEnd+1 >= linePattern.size() ) ? '2' : linePattern[rightEnd+1]; 
+		int right2 = ( rightEnd+2 >= linePattern.size() ) ? '2' : linePattern[rightEnd+2]; 
+		int right3 = ( rightEnd+3 >= linePattern.size() ) ? '2' : linePattern[rightEnd+3]; 
 
 		if( left1 != '1' && right1 == '0' && right2 == '1' && right3 != '1' )
 			// x11101x
@@ -71,10 +71,10 @@ void evaPattern(int numStoneInRow, string linePattern, int leftEnd, int rightEnd
 		int left1 = ( leftEnd-1 < 0 ) ? '2' : linePattern[leftEnd-1]; 
 		int left2 = ( leftEnd-2 < 0 ) ? '2' : linePattern[leftEnd-2]; 
 		int left3 = ( leftEnd-3 < 0 ) ? '2' : linePattern[leftEnd-3]; 
-		int right1 = ( rightEnd+1 == linePattern.size() ) ? '2' : linePattern[rightEnd+1]; 
-		int right2 = ( rightEnd+2 == linePattern.size() ) ? '2' : linePattern[rightEnd+2]; 
-		int right3 = ( rightEnd+3 == linePattern.size() ) ? '2' : linePattern[rightEnd+3]; 
-		int right4 = ( rightEnd+4 == linePattern.size() ) ? '2' : linePattern[rightEnd+4]; 
+		int right1 = ( rightEnd+1 >= linePattern.size() ) ? '2' : linePattern[rightEnd+1]; 
+		int right2 = ( rightEnd+2 >= linePattern.size() ) ? '2' : linePattern[rightEnd+2]; 
+		int right3 = ( rightEnd+3 >= linePattern.size() ) ? '2' : linePattern[rightEnd+3]; 
+		int right4 = ( rightEnd+4 >= linePattern.size() ) ? '2' : linePattern[rightEnd+4]; 
 
 		if( left1 != '1' && right1 == '0' && right2 == '1' && right3 == '1' && right4 != '1' )
 			// x11011x
@@ -112,11 +112,11 @@ void evaPattern(int numStoneInRow, string linePattern, int leftEnd, int rightEnd
 		int left2 = ( leftEnd-2 < 0 ) ? '2' : linePattern[leftEnd-2]; 
 		int left3 = ( leftEnd-3 < 0 ) ? '2' : linePattern[leftEnd-3]; 
 		int left4 = ( leftEnd-4 < 0 ) ? '2' : linePattern[leftEnd-4]; 
-		int right1 = ( rightEnd+1 == linePattern.size() ) ? '2' : linePattern[rightEnd+1]; 
-		int right2 = ( rightEnd+2 == linePattern.size() ) ? '2' : linePattern[rightEnd+2]; 
-		int right3 = ( rightEnd+3 == linePattern.size() ) ? '2' : linePattern[rightEnd+3]; 
-		int right4 = ( rightEnd+4 == linePattern.size() ) ? '2' : linePattern[rightEnd+4]; 
-		int right5 = ( rightEnd+5 == linePattern.size() ) ? '2' : linePattern[rightEnd+5]; 
+		int right1 = ( rightEnd+1 >= linePattern.size() ) ? '2' : linePattern[rightEnd+1]; 
+		int right2 = ( rightEnd+2 >= linePattern.size() ) ? '2' : linePattern[rightEnd+2]; 
+		int right3 = ( rightEnd+3 >= linePattern.size() ) ? '2' : linePattern[rightEnd+3]; 
+		int right4 = ( rightEnd+4 >= linePattern.size() ) ? '2' : linePattern[rightEnd+4]; 
+		int right5 = ( rightEnd+5 >= linePattern.size() ) ? '2' : linePattern[rightEnd+5]; 
 
 		// x1---1x
 		if( left1 != '1' && right1 == '0' && right4 == '1' && right5 != '1'	)
