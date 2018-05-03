@@ -34,6 +34,7 @@ int main()
 	int next_turn = -2;
 	int next_move = -1;
 	vector<int> board(217, '0');
+	game_tree tree;
 
 	/* check file exist */
 	while(!f) 
@@ -78,7 +79,6 @@ int main()
 		}
 
 		/* calculate next move */
-		game_tree tree;
 		cout << "-------------------------\n" << "#turns: " << next_turn << endl; //debug
 		if( EN_DYNAMIC_DEPTH == 1 )
 		{

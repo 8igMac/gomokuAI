@@ -52,6 +52,14 @@ int game_tree::next_move(vector<int> board, int depth)
 	pair<int,int> alphaBeta( numeric_limits<int>::min(), numeric_limits<int>::max() );  
 	totalCreatedNode++;
 
+	// run tss
+	int tss_move = tss(board, TSS_DEPTH);
+	if( tss_move != -1)
+	{
+		cout << "tss success with move: " << tss_move << endl;
+		return tss_move;
+	}
+
 	vector<int> psbMove(genNextMove(board, 1, false, false));
 	for(auto action: psbMove) 
 	{
@@ -78,9 +86,9 @@ int game_tree::maxValue(vector<int> board, int depth, pair<int,int> &alphaBeta)
 	int value = evaBoard(board);
 	int max_value = numeric_limits<int>::min();
 	// run tss
-	if( tss(board, TSS_DEPTH) )
+	if( tss(board, TSS_DEPTH) != -1)
 	{
-		cout << "tss success" << endl; //debug
+	//	cout << "tss success" << endl; //debug
 		return numeric_limits<int>::max();
 	}
 
@@ -132,33 +140,33 @@ int game_tree::minValue(vector<int> board, int depth, pair<int,int> &alphaBeta)
 }
 
 // TSS a.k.a Threat Space Search algorithm
-bool game_tree::tss(vector<int> board, int tssDepth)
+int game_tree::tss(vector<int> board, int tssDepth)
 {
 	if( tssDepth < 6 )
 		cout << "tss depth: " << tssDepth << endl; //debug
 	// tss out of quatar
 	if(tssDepth == 0)
-		return false;
+		return -1;
 
 	// search current game board
 	if( hasOppoThreat(board) )
-		return false;
+		return -1;
 	
 	// generate threat move
 	vector<int> threatMove( genNextMove(board, 1, true, false) );
 	
 	// win move found -> tss success
-	if( threatMove.size() != 0 && threatMove[0] == TSS_SUCCESS)
-		return true;
+	if( threatMove.size() == 1 )
+		return threatMove[0];
 
 	for(auto action: threatMove)
-		if( tss( conDef( result(board, action, 1) ), tssDepth-1 ) )
-		{
-			cout << action << " ";
-			return true;
-		}
+	{
+		int tss_move = tss( conDef( result(board, action, 1) ), tssDepth-1 );
+		if( tss_move != -1 )
+			return tss_move;
+	}
 
-	return false;
+	return -1;
 }
 
 // return game board with conservative defence
@@ -485,7 +493,7 @@ vector<int> game_tree::genNextMove(vector<int> board, int who, bool enTss, bool 
 			// tss success
 			if( enTss && pointScore == TSS_SUCCESS)
 			{
-				goodMove.push_back(TSS_SUCCESS);
+				goodMove.push_back(i);
 				return goodMove;
 			}
 

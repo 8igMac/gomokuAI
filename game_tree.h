@@ -113,7 +113,7 @@ class game_tree
 		 *
 		 * *****************************/
 		// TSS a.k.a Threat Space Search algorithm
-		bool tss(vector<int> board, int tssDepth);
+		int tss(vector<int> board, int tssDepth);
 		// is opponet has threat in current game board?
 		bool hasOppoThreat(vector<int> board);
 		// return game board with conservative defence
