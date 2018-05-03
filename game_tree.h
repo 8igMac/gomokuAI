@@ -16,21 +16,10 @@ class game_tree
 {
 	public:
 		game_tree();
-		~game_tree();
 		// return next best move
 		int next_move(vector<int> board, int depth);
 
 	private:
-
-		/***************************
-		 * 
-		 * 	basic tree function
-		 *
-		 * ************************/
-		// destroy tree node by node
-		void destroy_tree(node* leaf);
-		node* root;
-
 
 		/*****************************
 		 * 
@@ -109,11 +98,26 @@ class game_tree
 		 *
 		 * ******************************/
 		// generate next possible move
-		vector<int> genNextMove(vector<int> board, int who);
+		vector<int> genNextMove(vector<int> board, int who, bool enTss, bool enConDef);
 		// tell if the position has neighbor
 		bool hasNeighbor(vector<int> board, int index);
 		// evaluate action
-		int evaPoint(vector<int> board, int action, int hwo);
+		int evaPoint(vector<int> board, int action, int who, bool enTss, bool enConDef);
+
+		
+		/*******************************
+		 * 
+		 *  Threat Search Space related 	
+		 *  
+		 *  result: TSS success or not
+		 *
+		 * *****************************/
+		// TSS a.k.a Threat Space Search algorithm
+		bool tss(vector<int> board, int tssDepth);
+		// is opponet has threat in current game board?
+		bool hasOppoThreat(vector<int> board);
+		// return game board with conservative defence
+		vector<int> conDef(vector<int> board);
 
 
 		/*************************************************

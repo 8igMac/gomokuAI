@@ -10,9 +10,13 @@ using namespace std;
 
 #define STATE_FILE "state_27.txt"
 #define MOVE_FILE "move_27.txt"
-#define SEARCH_DEPTH 6
-#define MAX_SEARCH_DEPTH 6
+
+// adjustable parameter
+#define SEARCH_DEPTH 8
+
 #define EN_DYNAMIC_DEPTH 0
+#define DYNAMIC_START 20
+#define MAX_SEARCH_DEPTH 16
 
 // for debug purpose
 void test() 
@@ -78,7 +82,7 @@ int main()
 		cout << "-------------------------\n" << "#turns: " << next_turn << endl; //debug
 		if( EN_DYNAMIC_DEPTH == 1 )
 		{
-			if( next_turn < 25 )
+			if( next_turn > DYNAMIC_START )
 				next_move = tree.next_move(board, SEARCH_DEPTH);
 			else
 				next_move = tree.next_move(board, MAX_SEARCH_DEPTH);
