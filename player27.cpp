@@ -10,7 +10,9 @@ using namespace std;
 
 #define STATE_FILE "state_27.txt"
 #define MOVE_FILE "move_27.txt"
-#define SEARCH_DEPTH 2
+#define SEARCH_DEPTH 6
+#define MAX_SEARCH_DEPTH 6
+#define EN_DYNAMIC_DEPTH 0
 
 // for debug purpose
 void test() 
@@ -73,11 +75,16 @@ int main()
 
 		/* calculate next move */
 		game_tree tree;
-		next_move = tree.next_move(board, SEARCH_DEPTH);
-
-		// debug: print ai's next move
-		if(DEBUG)
-			cout << "next move: " << next_move << endl; //debug
+		cout << "-------------------------\n" << "#turns: " << next_turn << endl; //debug
+		if( EN_DYNAMIC_DEPTH == 1 )
+		{
+			if( next_turn < 25 )
+				next_move = tree.next_move(board, SEARCH_DEPTH);
+			else
+				next_move = tree.next_move(board, MAX_SEARCH_DEPTH);
+		}
+		else
+			next_move = tree.next_move(board, SEARCH_DEPTH);
 
 		/* write my move */
 		f.open(MOVE_FILE,ios_base::out);

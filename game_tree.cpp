@@ -18,7 +18,7 @@
 #define NOTHING 10
 
 #define WIN5SCORE 10000000
-#define NUMGOODMOVES 8
+#define NUMGOODMOVES 10
 
 
 // calculate next best move
@@ -73,11 +73,11 @@ int game_tree::maxValue(vector<int> board, int depth, pair<int,int> &alphaBeta)
 	totalCreatedNode++;
 	int value = evaBoard(board);
 	int max_value = numeric_limits<int>::min();
-	vector<int> psbMove(genNextMove(board, 1));
 
 	if(value >= WIN5SCORE || depth == 0)
 		return value;
 
+	vector<int> psbMove(genNextMove(board, 1));
 	for(auto action: psbMove)
 	{
 		max_value = max(max_value, minValue(result(board,action,1), depth-1, alphaBeta));
@@ -98,13 +98,13 @@ int game_tree::minValue(vector<int> board, int depth, pair<int,int> &alphaBeta)
 	totalCreatedNode++;
 	int value = evaBoard(board);
 	int min_value = numeric_limits<int>::max();
-	vector<int> psbMove(genNextMove(board, 2));
 
 	if(value >= WIN5SCORE || depth == 0)
 	{
 		return value;
 	}
 
+	vector<int> psbMove(genNextMove(board, 2));
 	for(auto action: psbMove)
 	{
 		min_value = min(min_value, maxValue(result(board,action,2), depth-1, alphaBeta));
@@ -329,7 +329,7 @@ void game_tree::evaPattern(int numStoneInRow, vector<int> board, vector<int> lin
 				if(right2 == 0)
 					// 010010
 					evaResult[ LOWALIVE2 ]++;
-				else if(right2 == 1)
+				else if(right2 == target)
 					// 010110
 					evaResult[ JUMPALIVE3 ]++;
 			}
@@ -402,16 +402,41 @@ vector<int> game_tree::genNextMove(vector<int> board, int who)
 
 	for(i=0; i<board.size(); i++)
 		if( board[i] == 0 && hasNeighbor(board, i) )
-			psbMove.insert( pair<int,int>( evaPoint(board, i, who), i ) );
+		{
+			int pointScore = evaPoint(board, i, who);
 
+			if( pointScore >= numeric_limits<int>::max() )
+			{
+				// win move found
+				goodMove.push_back(i);
+				return goodMove;
+			}
+			else
+				psbMove.insert( pair<int,int>( pointScore, i ) );
+		}
 
 	/*
-	// forward prunning
-	for( itr=psbMove.begin(), i=0; i<NUMGOODMOVES && itr != psbMove.end(); itr++, i++ )
-		goodMove.push_back(itr->second);
-		*/
+	//debug
 	for( itr=psbMove.begin(); itr != psbMove.end(); itr++ )
-		goodMove.push_back(itr->second);
+		cout << who << " " << itr->second << ": " << itr->first << endl; 
+		*/
+
+	if( psbMove.size() != 0 )
+	{
+		int threshold = psbMove.begin()->first;
+		if( threshold > 50000000 ) //10^7
+		{
+			// push all super pattern with point score
+			for( itr=psbMove.begin() ; itr != psbMove.end() && itr->first == threshold ; itr++ )
+				goodMove.push_back(itr->second);
+		}
+		else
+		{
+			// forward prunning: only push #NUMGOODMOVES of actions
+			for( itr=psbMove.begin() ; goodMove.size() < NUMGOODMOVES && itr != psbMove.end(); itr++ )
+				goodMove.push_back(itr->second);
+		}
+	}
 
 	return goodMove;
 }
@@ -419,9 +444,10 @@ vector<int> game_tree::genNextMove(vector<int> board, int who)
 // evaluate action
 int game_tree::evaPoint(vector<int> board, int action, int who)
 {
-	int score;
+	int score=0;
 	int opponent = ( who == 1 ) ? 2 : 1;
 	vector<int> oldUsTable(11), newUsTable(11), oldOppoTable(11), newOppoTable(11);
+	vector<int> usTable(11), oppoTable(11);	
 	vector<int> newBoard( result( board, action, who ) );
 
 	// us
@@ -454,7 +480,80 @@ int game_tree::evaPoint(vector<int> board, int action, int who)
 
 	newOppoTable = evaResult;
 
-	// scoring
+	// calculate result
+	int result;
+	for(int i=0; i<usTable.size(); i++)
+	{
+		result = ( newUsTable[i] - oldUsTable[i] );
+		usTable[i] = ( result < 0 ) ? 0 : result;
+	}
+	for(int i=0; i<oppoTable.size(); i++)
+	{
+		result = ( oldOppoTable[i] - newOppoTable[i] );
+		oppoTable[i] = ( result < 0 ) ? 0 : result;
+	}
+
+
+	/*
+	//debug
+	if( action == 126 )
+	{
+		cout << "usTable: ";
+		for(int i=0; i<usTable.size(); i++)
+			cout << usTable[i] << " ";
+		cout << endl;
+		cout << "oppoTable: ";
+		for(int i=0; i<oppoTable.size(); i++)
+			cout << oppoTable[i] << " ";
+		cout << endl;
+		cout << "oldOppoTable: ";
+		for(int i=0; i<oldOppoTable.size(); i++)
+			cout << oldOppoTable[i] << " ";
+		cout << endl;
+		cout << "newOppoTable: ";
+		for(int i=0; i<newOppoTable.size(); i++)
+			cout << newOppoTable[i] << " ";
+		cout << endl;
+
+		cout << "right line: ";
+		for(int i=0; i<rightLineTb[ pos2axis[93][2].first ].size(); i++)
+			cout << board[ rightLineTb[ pos2axis[93][2].first ][i] ] << " ";
+		cout << endl;
+
+		cout << opponent << endl;
+	}
+	*/
+
+	// return if WIN5
+	if( usTable[WIN5] >= 1)
+		return numeric_limits<int>::max();
+
+	// class 0: defend oppo dead4 and alive4
+	if( ( oppoTable[DEAD4] + oppoTable[LOWDEAD4] ) >= 1 || oppoTable[ALIVE4] >= 1)
+		return 90000000; //10^7
+
+	// class 1: attack us alive4, 2*dead4, dead4alive3
+	if( usTable[ALIVE4] >= 1 ||
+			( usTable[DEAD4] + usTable[LOWDEAD4] ) >= 2	||
+			( ( usTable[DEAD4] + usTable[LOWDEAD4] ) >= 1 && ( usTable[ALIVE3] + usTable[JUMPALIVE3] ) >= 1 ) )
+		return 80000000; //10^7
+
+	// class 2: defend oppo alive4, 2*dead4, dead4alive3
+	if( ( oppoTable[ALIVE3] + oppoTable[JUMPALIVE3]) >= 1 ||
+			oppoTable[DEAD3] >= 2	||
+			( oppoTable[DEAD3]>= 1 && ( oppoTable[ALIVE2] + oppoTable[LOWALIVE2] ) >= 1 ) )
+		return 70000000; //10^7
+
+	// class 3: attack us 2*alive3
+	if( ( usTable[ALIVE3] + usTable[JUMPALIVE3] ) >= 2 )
+		return 60000000; //10^7
+
+	// class 4: deffend oppo 2*alive3
+	if( ( oppoTable[ALIVE2] + oppoTable[LOWALIVE2] ) >= 2 )
+		return 50000000; //10^7
+
+	/*
+	// scoring 1
 	// ALIVE4 
 	score += ( ( newUsTable[1] - oldUsTable[1] )*6000 ); // attack
 	score += ( ( oldOppoTable[1] - newOppoTable[1] )*15000 ); // defend
@@ -484,6 +583,32 @@ int game_tree::evaPoint(vector<int> board, int action, int who)
 	// DEAD2 
 	score += ( ( newUsTable[9] - oldUsTable[9] )*100 );
 	score += ( ( oldOppoTable[9] - newOppoTable[9] )*200 );
+	*/
+
+	// scoring 2
+	// DEAD4 
+	score += ( usTable[DEAD4] * 8000 );
+	score += ( usTable[LOWDEAD4] * 8000 );
+		
+	// ALIVE3 
+	score += ( usTable[ALIVE3] * 2100 );
+	score += ( usTable[JUMPALIVE3] * 2100 );
+	score += ( oppoTable[ALIVE3] * 8000 );
+	score += ( oppoTable[JUMPALIVE3] * 8000 );
+		
+	// DEAD3 
+	score += ( usTable[DEAD3] * 300 );
+	score += ( oppoTable[DEAD3] * 1400 );
+		
+	// ALIVE2 
+	score += ( usTable[ALIVE2] * 250 );
+	score += ( usTable[LOWALIVE2] * 250 );
+	score += ( oppoTable[ALIVE2] * 3000 );
+	score += ( oppoTable[LOWALIVE2] * 3000 );
+		
+	// DEAD2 
+	score += ( usTable[DEAD2] * 50 );
+	score += ( oppoTable[DEAD2] * 100 );
 		
 	return score;
 }
@@ -493,12 +618,21 @@ bool game_tree::hasNeighbor(vector<int> board, int index)
 {
 	int check_index;
 
+	// neighbor
 	check_index = hrzLineTb[ pos2axis[index][0].first ][ pos2axis[index][0].second-1 ];
 	if(check_index >= 0 && check_index < 217 && board[check_index] != 0)
 		return true;
 	check_index = hrzLineTb[ pos2axis[index][0].first ][ pos2axis[index][0].second+1 ];
 	if(check_index >= 0 && check_index < 217 && board[check_index] != 0)
 		return true;
+	// next neighbor
+	check_index = hrzLineTb[ pos2axis[index][0].first ][ pos2axis[index][0].second-2 ];
+	if(check_index >= 0 && check_index < 217 && board[check_index] != 0)
+		return true;
+	check_index = hrzLineTb[ pos2axis[index][0].first ][ pos2axis[index][0].second+2 ];
+	if(check_index >= 0 && check_index < 217 && board[check_index] != 0)
+		return true;
+
 
 	check_index = leftLineTb[ pos2axis[index][1].first ][ pos2axis[index][1].second-1 ];
 	if(check_index >= 0 && check_index < 217 && board[check_index] != 0)
@@ -506,11 +640,23 @@ bool game_tree::hasNeighbor(vector<int> board, int index)
 	check_index = leftLineTb[ pos2axis[index][1].first ][ pos2axis[index][1].second+1 ];
 	if(check_index >= 0 && check_index < 217 && board[check_index] != 0)
 		return true;
+	check_index = leftLineTb[ pos2axis[index][1].first ][ pos2axis[index][1].second-2 ];
+	if(check_index >= 0 && check_index < 217 && board[check_index] != 0)
+		return true;
+	check_index = leftLineTb[ pos2axis[index][1].first ][ pos2axis[index][1].second+2 ];
+	if(check_index >= 0 && check_index < 217 && board[check_index] != 0)
+		return true;
 
 	check_index = rightLineTb[ pos2axis[index][2].first ][ pos2axis[index][2].second-1 ];	
 	if(check_index >= 0 && check_index < 217 && board[check_index] != 0)
 		return true;
 	check_index = rightLineTb[ pos2axis[index][2].first ][ pos2axis[index][2].second+1 ];	
+	if(check_index >= 0 && check_index < 217 && board[check_index] != 0)
+		return true;
+	check_index = rightLineTb[ pos2axis[index][2].first ][ pos2axis[index][2].second-2 ];	
+	if(check_index >= 0 && check_index < 217 && board[check_index] != 0)
+		return true;
+	check_index = rightLineTb[ pos2axis[index][2].first ][ pos2axis[index][2].second+2 ];	
 	if(check_index >= 0 && check_index < 217 && board[check_index] != 0)
 		return true;
 
@@ -722,12 +868,6 @@ void game_tree::axisLutInit()
 			rightLineTb[i] = temp;
 		}
 	}
-}
-
-// debug function
-void game_tree::debug()
-{
-	cout << "game_tree::debug() is called" << endl;
 }
 
 // generate random move

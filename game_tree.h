@@ -129,8 +129,6 @@ class game_tree
 		 *  			debug functions  	
 		 *
 		 * ******************************/
-		// debug function, can be modified at will to debug
-		void debug();
 		// generate random move
 		int genRandomMove(vector<int> board);
 		void printEvaResult();
