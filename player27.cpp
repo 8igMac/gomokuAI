@@ -31,6 +31,7 @@ int main()
 
 	fstream f(STATE_FILE);
 	int get_turn = -1;
+	int last_round; // do not handle
 	int next_turn = -2;
 	int next_move = -1;
 	vector<int> board(217, '0');
@@ -60,6 +61,7 @@ int main()
 			{
 				for(int i=0; i<board.size(); i++) 
 					f >> board[i];
+				f >> last_round;
 				f.close();
 				break;
 			}

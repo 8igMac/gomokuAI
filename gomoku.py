@@ -107,6 +107,7 @@ class gomoku:
                     f.write('1 ')
                 else:
                     f.write('2 ')
+            f.write('\n-1')
         # clock start
         begin_time = time.monotonic()
 
