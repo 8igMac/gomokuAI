@@ -19,30 +19,19 @@
 
 #define WIN5SCORE 10000000
 #define TSS_SUCCESS -2
+#define EARLY_GAME 6
+#define MID_GAME 20
 
 // adjustable parameter
-#define NUMGOODMOVES 3
-#define TSS_DEPTH 8
+#define NUMGOODMOVES 5 //3
+#define NUMTSSMOVES 2 
+#define TSS_DEPTH 6
+#define TSS_THRESHOLD 1000
 
 
 // calculate next best move
 int game_tree::next_move(vector<int> board, int depth) 
 {
-	/*
-	//debug
-	cout << evaBoard(board) << endl;
-	return genRandomMove(board);
-	*/
-	/*
-	//debug
-	cout << "board[92]: " << board[92] << endl; 
-	for(int i=0; i<rightLineTb.size(); i++)
-	{
-		for(int j=0; j<rightLineTb[i].size(); j++)
-			cout << setw(3) << rightLineTb[i][j] << " ";
-		cout << endl;
-	}
-	*/
 
 	int best_move = 108; // center of the game board
 	int max_value = numeric_limits<int>::min();
@@ -52,15 +41,7 @@ int game_tree::next_move(vector<int> board, int depth)
 	pair<int,int> alphaBeta( numeric_limits<int>::min(), numeric_limits<int>::max() );  
 	totalCreatedNode++;
 
-	// run tss
-	int tss_move = tss(board, TSS_DEPTH);
-	if( tss_move != -1)
-	{
-		cout << "tss success with move: " << tss_move << endl;
-		return tss_move;
-	}
-
-	vector<int> psbMove(genNextMove(board, 1, false, false));
+	vector<int> psbMove(genNextMove(board, 1, false));
 	for(auto action: psbMove) 
 	{
 		int minvalue = minValue(result(board, action, 1), depth-1, alphaBeta);
@@ -85,18 +66,22 @@ int game_tree::maxValue(vector<int> board, int depth, pair<int,int> &alphaBeta)
 	totalCreatedNode++;
 	int value = evaBoard(board);
 	int max_value = numeric_limits<int>::min();
-	// run tss
-	if( tss(board, TSS_DEPTH) != -1)
-	{
-	//	cout << "tss success" << endl; //debug
-		return numeric_limits<int>::max();
-	}
-
 
 	if(value >= WIN5SCORE || depth == 0)
 		return value;
 
-	vector<int> psbMove(genNextMove(board, 1, false, false));
+	// run tss on threshold 200
+	if( value > TSS_THRESHOLD )
+	{
+		cout << "\truning tss on depth: " << depth << endl; //debug
+		if( tss(board, TSS_DEPTH) != -1)
+		{
+			cout << "\ttss success" << endl; //debug
+			return numeric_limits<int>::max();
+		}
+	}
+
+	vector<int> psbMove(genNextMove(board, 1, false));
 	for(auto action: psbMove)
 	{
 		max_value = max(max_value, minValue(result(board,action,1), depth-1, alphaBeta));
@@ -123,7 +108,7 @@ int game_tree::minValue(vector<int> board, int depth, pair<int,int> &alphaBeta)
 		return value;
 	}
 
-	vector<int> psbMove(genNextMove(board, 2, false, false));
+	vector<int> psbMove(genNextMove(board, 2, false));
 	for(auto action: psbMove)
 	{
 		min_value = min(min_value, maxValue(result(board,action,2), depth-1, alphaBeta));
@@ -140,39 +125,40 @@ int game_tree::minValue(vector<int> board, int depth, pair<int,int> &alphaBeta)
 }
 
 // TSS a.k.a Threat Space Search algorithm
-int game_tree::tss(vector<int> board, int tssDepth)
+bool game_tree::tss(vector<int> board, int tssDepth)
 {
-	if( tssDepth < 6 )
-		cout << "tss depth: " << tssDepth << endl; //debug
+	vector<int> defMoves;
+
 	// tss out of quatar
 	if(tssDepth == 0)
-		return -1;
+		return false;
 
 	// search current game board
 	if( hasOppoThreat(board) )
-		return -1;
+		return false;
 	
 	// generate threat move
-	vector<int> threatMove( genNextMove(board, 1, true, false) );
+	vector<int> threatMove( genNextMove(board, 1, true) );
 	
 	// win move found -> tss success
 	if( threatMove.size() == 1 )
-		return threatMove[0];
+		return true;
 
-	for(auto action: threatMove)
-	{
-		int tss_move = tss( conDef( result(board, action, 1) ), tssDepth-1 );
-		if( tss_move != -1 )
-			return tss_move;
-	}
+	for(int i=0; i<threatMove.size(); i++)
+		if( tss( conDef( result(board, threatMove[i], 1) ), tssDepth-1 ) )
+		{
+			cout << threatMove[i] << " " << endl;
+			return true;
+		}
 
-	return -1;
+	return false;
 }
+
 
 // return game board with conservative defence
 vector<int> game_tree::conDef(vector<int> board)
 {
-	vector<int> condef( genNextMove(board, 2, false, true) );
+	vector<int> condef( genNextMove(board, 2, false) );
 	vector<int> boardDef(board);
 
 	for(auto action: condef)
@@ -232,7 +218,7 @@ int game_tree::evaBoard(vector<int> board)
 		evaLinePattern( rightLineTb[i], board, 1 );	
 
 	// calculate our game board score
-	score = boardScore();
+	score = boardScore(board, 1);
 
 	// clear evaluated result
 	clearEvaResult();
@@ -247,7 +233,7 @@ int game_tree::evaBoard(vector<int> board)
 		evaLinePattern( rightLineTb[i], board, 2 );	
 
 	// calculate opponent game board score
-	score -= boardScore();
+	score -= boardScore(board, 2);
 	
 	return score;
 }
@@ -478,7 +464,7 @@ void game_tree::evaPattern(int numStoneInRow, vector<int> board, vector<int> lin
 }
 
 // generate next possible move
-vector<int> game_tree::genNextMove(vector<int> board, int who, bool enTss, bool enConDef) 
+vector<int> game_tree::genNextMove(vector<int> board, int who, bool enTss) 
 {
 	int i=0;
 	multimap<int,int>::iterator itr;
@@ -488,7 +474,7 @@ vector<int> game_tree::genNextMove(vector<int> board, int who, bool enTss, bool 
 	for(i=0; i<board.size(); i++)
 		if( board[i] == 0 && hasNeighbor(board, i) )
 		{
-			int pointScore = evaPoint(board, i, who, enTss, enConDef);
+			int pointScore = evaPoint(board, i, who, enTss);
 
 			// tss success
 			if( enTss && pointScore == TSS_SUCCESS)
@@ -515,15 +501,9 @@ vector<int> game_tree::genNextMove(vector<int> board, int who, bool enTss, bool 
 
 	if( enTss )
 	{
-		for( itr=psbMove.begin() ; itr != psbMove.end(); itr++ )
-			if( itr->first == -1 )
-				goodMove.push_back( itr->second );
-	}
-	else if( enConDef )
-	{
-		for( itr=psbMove.begin() ; itr != psbMove.end(); itr++ )
-			if( itr->first == -3 )
-				goodMove.push_back( itr->second );
+		// forward prunning: only push #NUMGOODMOVES of actions
+		for( itr=psbMove.begin() ; goodMove.size() < NUMTSSMOVES && itr != psbMove.end(); itr++ )
+			goodMove.push_back(itr->second);
 	}
 	else
 	{
@@ -550,7 +530,7 @@ vector<int> game_tree::genNextMove(vector<int> board, int who, bool enTss, bool 
 }
 
 // evaluate action
-int game_tree::evaPoint(vector<int> board, int action, int who, bool enTss, bool enConDef)
+int game_tree::evaPoint(vector<int> board, int action, int who, bool enTss)
 {
 	int score=0;
 	int opponent = ( who == 1 ) ? 2 : 1;
@@ -639,21 +619,9 @@ int game_tree::evaPoint(vector<int> board, int action, int who, bool enTss, bool
 		if( usTable[WIN5] != 0 || 
 				( usTable[ALIVE4] +	usTable[DEAD4] + usTable[LOWDEAD4] + usTable[ALIVE3] + usTable[JUMPALIVE3] ) >= 2 )
 			return TSS_SUCCESS;
-		// have threat
-		else if( ( usTable[ALIVE4] +	usTable[DEAD4] + usTable[LOWDEAD4] + usTable[ALIVE3] + usTable[JUMPALIVE3] ) >= 1 )
-			return -1;
-		// nothing
-		else 
-			return 0;
-	}
-
-	// if enable conDef
-	if( enConDef )
-	{
-		if( ( oppoTable[ALIVE4] +	oppoTable[DEAD4] + oppoTable[LOWDEAD4] + oppoTable[ALIVE3] + oppoTable[JUMPALIVE3] ) == 0)
-			return -3;
-		else
-			return 0;
+		// don't have threat
+		else if( ( usTable[ALIVE4] +	usTable[DEAD4] + usTable[LOWDEAD4] + usTable[ALIVE3] + usTable[JUMPALIVE3] ) < 1 )
+			return -5;
 	}
 
 	// return if WIN5
@@ -687,23 +655,23 @@ int game_tree::evaPoint(vector<int> board, int action, int who, bool enTss, bool
 	// scoring 
 	// DEAD4 
 	score += ( usTable[DEAD4] * 8000 );
-	score += ( usTable[LOWDEAD4] * 8000 );
+	score += ( usTable[LOWDEAD4] * 7000 );
 		
 	// ALIVE3 
-	score += ( usTable[ALIVE3] * 2100 );
+	score += ( usTable[ALIVE3] * 6000 );
 	score += ( usTable[JUMPALIVE3] * 2100 );
 	score += ( oppoTable[ALIVE3] * 8000 );
 	score += ( oppoTable[JUMPALIVE3] * 8000 );
 		
 	// DEAD3 
-	score += ( usTable[DEAD3] * 300 );
+	score += ( usTable[DEAD3] * 1000 );
 	score += ( oppoTable[DEAD3] * 1400 );
 		
 	// ALIVE2 
-	score += ( usTable[ALIVE2] * 250 );
-	score += ( usTable[LOWALIVE2] * 250 );
-	score += ( oppoTable[ALIVE2] * 3000 );
-	score += ( oppoTable[LOWALIVE2] * 3000 );
+	score += ( usTable[ALIVE2] * 10000 );
+	score += ( usTable[LOWALIVE2] * 500 );
+	score += ( oppoTable[ALIVE2] * 1000 );
+	score += ( oppoTable[LOWALIVE2] * 1000 );
 		
 	// DEAD2 
 	score += ( usTable[DEAD2] * 50 );
@@ -800,8 +768,14 @@ void game_tree::clearEvaResult()
 }
 
 // calculate game board score
-int game_tree::boardScore()
+int game_tree::boardScore(vector<int> board, int who)
 {
+	int next_turn = 1;
+	// calculate turn number
+	for(int i=0; i<board.size(); i++)
+		if(board[i] != 0)
+			next_turn++;
+
 	int score = 0;
 	// evaluation table
 	
@@ -840,24 +814,51 @@ int game_tree::boardScore()
 		score += 1000;
 	}
 
-	while( evaResult[ LOWALIVE2 ] + evaResult[ ALIVE2 ] >= 2 )
+
+
+
+	// early game adjuct parameter
+	if( who == 1 )
 	{
-		if( evaResult[ ALIVE2 ] > 0)
-			evaResult[ ALIVE2 ]--;
-		else 
-			evaResult[ LOWALIVE2 ]--;
+		if( next_turn < EARLY_GAME )
+		{
+			score += evaResult[ ALIVE3 ] * 500;
+			while( ( evaResult[ ALIVE2 ] + evaResult[ DEAD2 ] ) >= 2 )
+			{
+				if( evaResult[ ALIVE2 ] >= 1 )
+					evaResult[ ALIVE2 ]--;
+				else
+					evaResult[ DEAD2 ]--;
 
-		if( evaResult[ ALIVE2 ] > 0)
-			evaResult[ ALIVE2 ]--;
-		else 
-			evaResult[ LOWALIVE2 ]--;
+				score += 400; 
+			}
+		}
+		else if( next_turn < MID_GAME )
+		{
+			score += evaResult[ ALIVE3 ] * 400;
+			while( ( evaResult[ ALIVE2 ] + evaResult[ DEAD2 ] ) >= 2 )
+			{
+				if( evaResult[ ALIVE2 ] >= 1 )
+					evaResult[ ALIVE2 ]--;
+				else
+					evaResult[ DEAD2 ]--;
 
-		score += 50;
+				score += 400; 
+			}
+		}
+	}
+	else
+	{
+		score += evaResult[ ALIVE3 ] * 100;
+		while(  evaResult[ ALIVE2 ] >= 2 )
+		{
+			evaResult[ ALIVE2 ]-=2;
+			score += 50; 
+		}
 	}
 
 	score += evaResult[ DEAD4 ] * 500;
 	score += evaResult[ LOWDEAD4 ] * 400;
-	score += evaResult[ ALIVE3 ] * 100;
 	score += evaResult[ JUMPALIVE3 ] * 90;
 	score += evaResult[ ALIVE2 ] * 10;
 	score += evaResult[ LOWALIVE2 ] * 9;

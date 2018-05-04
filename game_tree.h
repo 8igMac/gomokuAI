@@ -89,7 +89,7 @@ class game_tree
 		// clear evaluation result table
 		void clearEvaResult();
 		// calculate game board score
-		int boardScore();
+		int boardScore(vector<int> board, int who);
 
 
 		/*******************************
@@ -98,11 +98,11 @@ class game_tree
 		 *
 		 * ******************************/
 		// generate next possible move
-		vector<int> genNextMove(vector<int> board, int who, bool enTss, bool enConDef);
+		vector<int> genNextMove(vector<int> board, int who, bool enTss);
 		// tell if the position has neighbor
 		bool hasNeighbor(vector<int> board, int index);
 		// evaluate action
-		int evaPoint(vector<int> board, int action, int who, bool enTss, bool enConDef);
+		int evaPoint(vector<int> board, int action, int who, bool enTss);
 
 		
 		/*******************************
@@ -113,7 +113,7 @@ class game_tree
 		 *
 		 * *****************************/
 		// TSS a.k.a Threat Space Search algorithm
-		int tss(vector<int> board, int tssDepth);
+		bool tss(vector<int> board, int tssDepth);
 		// is opponet has threat in current game board?
 		bool hasOppoThreat(vector<int> board);
 		// return game board with conservative defence

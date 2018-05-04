@@ -12,11 +12,11 @@ using namespace std;
 #define MOVE_FILE "move_27.txt"
 
 // adjustable parameter
-#define SEARCH_DEPTH 8
+#define SEARCH_DEPTH 4
 
 #define EN_DYNAMIC_DEPTH 0
 #define DYNAMIC_START 20
-#define MAX_SEARCH_DEPTH 16
+#define MAX_SEARCH_DEPTH 4
 
 // for debug purpose
 void test() 
@@ -80,15 +80,15 @@ int main()
 
 		/* calculate next move */
 		cout << "-------------------------\n" << "#turns: " << next_turn << endl; //debug
-		if( EN_DYNAMIC_DEPTH == 1 )
-		{
-			if( next_turn > DYNAMIC_START )
-				next_move = tree.next_move(board, SEARCH_DEPTH);
+			if( EN_DYNAMIC_DEPTH == 1 )
+			{
+				if( next_turn > DYNAMIC_START )
+					next_move = tree.next_move(board, SEARCH_DEPTH);
+				else
+					next_move = tree.next_move(board, MAX_SEARCH_DEPTH);
+			}
 			else
-				next_move = tree.next_move(board, MAX_SEARCH_DEPTH);
-		}
-		else
-			next_move = tree.next_move(board, SEARCH_DEPTH);
+				next_move = tree.next_move(board, SEARCH_DEPTH);
 
 		/* write my move */
 		f.open(MOVE_FILE,ios_base::out);
